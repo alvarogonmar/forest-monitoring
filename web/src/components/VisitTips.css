@@ -1,0 +1,91 @@
+.visit-tips {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 40px 24px 56px;
+  scroll-margin-top: 24px;
+}
+
+.visit-eyebrow {
+  margin: 0 0 12px;
+  color: #39734d;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-align: center;
+}
+
+.visit-tips h2 {
+  margin: 0 0 32px;
+  color: #153e32;
+  font-family: Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+  line-height: 1.2;
+  text-align: center;
+}
+
+.visit-tips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.visit-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 28px;
+  border-radius: 16px;
+  background: #f0f3e9;
+}
+
+.visit-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #e0e8d2;
+  color: #153e32;
+}
+
+.visit-icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.visit-card h3 {
+  margin: 0 0 10px;
+  color: #153e32;
+  font-family: Georgia, serif;
+  font-size: 22px;
+}
+
+.visit-card p {
+  margin: 0;
+  color: #52645a;
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .visit-tips-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .visit-card {
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .visit-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .visit-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+}
