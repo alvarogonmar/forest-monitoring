@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { RequestController } from '../src/core/request.ts';
+import { RequestController } from '../src/core/request.js';
 
 const coordinates = { latitude: 20.654, longitude: -103.55, accuracy: 12, capturedAt: new Date().toISOString() };
 const receipt = { id: 'DEMO-id', confirmedAt: new Date().toISOString(), simulated: true };

@@ -2,7 +2,7 @@
 
 ## 1. Qué se construyó
 
-Se creó `app-movil/` con React Native, Expo SDK 58 y TypeScript. Se reprodujeron las cuatro vistas de las capturas y se conectaron a un flujo funcional. La app usa la ubicación real del teléfono, detecta internet y conserva una solicitud al cerrarse.
+Se creó `app-movil/` con React Native, Expo SDK 58 y JavaScript. Se reprodujeron las cuatro vistas de las capturas y se conectaron a un flujo funcional. La app usa la ubicación real del teléfono, detecta internet y conserva una solicitud al cerrarse.
 
 **Esta entrega es solo frontend.** El envío y su confirmación son simulados: no existe conexión a una API ni recepción por un administrador. La interfaz indica “Modo demostración · envío simulado”, y la confirmación aclara que es una prueba.
 
@@ -10,7 +10,7 @@ Se creó `app-movil/` con React Native, Expo SDK 58 y TypeScript. Se reprodujero
 
 ### Paso 1: crear el proyecto
 
-Se utilizó la plantilla `blank-typescript` de `create-expo-app`. Se mantuvo el proyecto dentro de `forest-monitoring/`, sin modificar la documentación anterior ni crear otro repositorio. `app.json` define el nombre, orientación vertical, apariencia clara, identificadores de app y permisos de ubicación en primer plano.
+Se creó el proyecto con `create-expo-app` y se migró todo el código de la app a JavaScript. Se eliminaron las anotaciones de tipos, las interfaces, `tsconfig.json` y las dependencias directas de TypeScript; la entrada de Expo es `index.js`. Se mantuvo el proyecto dentro de `forest-monitoring/`, sin modificar la documentación anterior ni crear otro repositorio. `app.json` define el nombre, orientación vertical, apariencia clara, identificadores de app y permisos de ubicación en primer plano.
 
 ### Paso 2: instalar los módulos compatibles con Expo
 
@@ -29,7 +29,7 @@ Se instalaron con `expo install`:
 
 ### Paso 3: reproducir la interfaz
 
-`App.tsx` contiene una pantalla cuyo contenido cambia con el estado de la solicitud. No se necesita navegación entre rutas para este flujo. Se usaron el verde bosque, fondo marfil, naranja de espera, rojo del botón y verde de confirmación de las referencias. Se agregaron desplazamiento para pantallas pequeñas, etiquetas de accesibilidad y botones de reintento.
+`App.js` contiene una pantalla cuyo contenido cambia con el estado de la solicitud. No se necesita navegación entre rutas para este flujo. Se usaron el verde bosque, fondo marfil, naranja de espera, rojo del botón y verde de confirmación de las referencias. Se agregaron desplazamiento para pantallas pequeñas, etiquetas de accesibilidad y botones de reintento.
 
 El logo se recreó con formas SVG y texto; no es una exportación oficial del logo de Figma. La fecha y el folio son dinámicos; los valores de ejemplo de las capturas no están fijados en el código. El folio visible usa los primeros ocho caracteres del UUID, mientras que internamente se conserva el UUID completo.
 
@@ -50,11 +50,11 @@ Con internet: inicio → guardado y GPS → enviando → confirmación simulada.
 
 ### Paso 5: conservar la solicitud
 
-`src/core/request.ts` implementa el controlador del ciclo de vida. Primero guarda la intención de pedir ayuda y después busca el GPS. Así, si se cierra la app mientras busca coordenadas, la solicitud no desaparece.
+`src/core/request.js` implementa el controlador del ciclo de vida. Primero guarda la intención de pedir ayuda y después busca el GPS. Así, si se cierra la app mientras busca coordenadas, la solicitud no desaparece.
 
-`src/services/device.ts` almacena un JSON bajo la clave `@bosque-primavera/help-request/v1`. Incluye:
+`src/services/device.js` almacena un JSON bajo la clave `@bosque-primavera/help-request/v1`. Incluye:
 
-```ts
+```js
 {
   version: 1,
   id: 'UUID completo',
@@ -88,7 +88,7 @@ Una vez guardada una ubicación, los reintentos conservan esa lectura: correspon
 
 ### Paso 7: detectar conexión y reanudar
 
-`src/hooks/useHelpRequest.ts` conecta el controlador con NetInfo y AppState. Se espera disponibilidad de internet; estar asociado a una red Wi-Fi no basta. Mientras la conectividad sea desconocida, se muestra “Comprobando conexión” y no se envía.
+`src/hooks/useHelpRequest.js` conecta el controlador con NetInfo y AppState. Se espera disponibilidad de internet; estar asociado a una red Wi-Fi no basta. Mientras la conectividad sea desconocida, se muestra “Comprobando conexión” y no se envía.
 
 Si regresa internet mientras la app está abierta, se reintenta automáticamente. Al volver a primer plano se actualiza la conexión y se reanuda la solicitud. Si se pierde internet o la app pasa a segundo plano durante el envío, se interrumpe la simulación y la solicitud queda pendiente. Una operación interrumpida no puede mostrar confirmación.
 
@@ -96,7 +96,7 @@ No hay envío garantizado con la app cerrada ni tareas de GPS o envío en segund
 
 ### Paso 8: simular el envío
 
-`src/services/transport.ts` contiene `simulatedTransport`: espera aproximadamente 2.8 segundos y devuelve un recibo ficticio. Admite cancelación. No hace peticiones HTTP y no transmite las coordenadas a un administrador.
+`src/services/transport.js` contiene `simulatedTransport`: espera aproximadamente 2.8 segundos y devuelve un recibo ficticio. Admite cancelación. No hace peticiones HTTP y no transmite las coordenadas a un administrador.
 
 ### Paso 9: preparar la integración posterior
 
@@ -119,20 +119,20 @@ No se añadió endpoint, autenticación, dashboard ni backend en esta entrega.
 forest-monitoring/
 ├── frontendAppMovil.md
 └── app-movil/
-    ├── App.tsx                       # Las cuatro vistas y sus estados
+    ├── App.js                       # Las cuatro vistas y sus estados
     ├── app.json                      # Configuración y permisos nativos
-    ├── index.ts                      # Entrada de Expo
+    ├── index.js                      # Entrada de Expo
     ├── package.json                  # Dependencias y comandos
     ├── package-lock.json             # Versiones reproducibles
     ├── .nvmrc                        # Node 24
     ├── eslint.config.js
     ├── src/
-    │   ├── components/Icons.tsx       # Logo e iconos SVG
-    │   ├── core/request.ts           # Tipos y controlador
-    │   ├── hooks/useHelpRequest.ts   # React, conexión y ciclo de vida
+    │   ├── components/Icons.js       # Logo e iconos SVG
+    │   ├── core/request.js           # Controlador de solicitudes
+    │   ├── hooks/useHelpRequest.js   # React, conexión y ciclo de vida
     │   └── services/
-    │       ├── device.ts             # GPS, UUID y almacenamiento
-    │       └── transport.ts          # Adaptador simulado sustituible
+    │       ├── device.js             # GPS, UUID y almacenamiento
+    │       └── transport.js          # Adaptador simulado sustituible
     └── tests/request.test.mjs        # Pruebas del ciclo de vida
 ```
 
@@ -183,10 +183,9 @@ La web sirve para revisar el diseño con `npm run web`. El navegador puede limit
 
 ## 6. Verificación técnica
 
-Se ejecutaron correctamente:
+Tras la migración a JavaScript, se ejecutaron correctamente:
 
 ```sh
-npm run typecheck
 npm run lint
 npm test
 npx expo export --platform all
