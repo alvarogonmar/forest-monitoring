@@ -2,7 +2,7 @@
 
 ## 1. Qué se construyó
 
-Se creó `app-movil/` con React Native, Expo SDK 58 y JavaScript. Se reprodujeron las cuatro vistas de las capturas y se conectaron a un flujo funcional. La app usa la ubicación real del teléfono, detecta internet y conserva una solicitud al cerrarse.
+Se creó `mobile/` con React Native, Expo SDK 58 y JavaScript. Se reprodujeron las cuatro vistas de las capturas y se conectaron a un flujo funcional. La app usa la ubicación real del teléfono, detecta internet y conserva una solicitud al cerrarse.
 
 **Esta entrega es solo frontend.** El envío y su confirmación son simulados: no existe conexión a una API ni recepción por un administrador. La interfaz indica “Modo demostración · envío simulado”, y la confirmación aclara que es una prueba.
 
@@ -118,7 +118,7 @@ No se añadió endpoint, autenticación, dashboard ni backend en esta entrega.
 ```text
 forest-monitoring/
 ├── frontendAppMovil.md
-└── app-movil/
+└── mobile/
     ├── App.js                       # Las cuatro vistas y sus estados
     ├── app.json                      # Configuración y permisos nativos
     ├── index.js                      # Entrada de Expo
@@ -138,12 +138,12 @@ forest-monitoring/
 
 ## 4. Cómo ejecutarla en tu teléfono
 
-1. Usa Node 24 LTS. Si tienes `nvm`, ejecuta `nvm use` dentro de `app-movil`.
+1. Usa Node 24 LTS. Si tienes `nvm`, ejecuta `nvm use` dentro de `mobile`.
 2. Instala Expo Go compatible con SDK 58 en el teléfono.
 3. En la terminal ejecuta:
 
 ```sh
-cd /Users/valeriaavilan/Documents/ITC/semestre5/integracionSeguridad/adminProyectos/forest-monitoring/app-movil
+cd mobile
 npm ci
 npm start
 ```
