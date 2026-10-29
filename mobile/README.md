@@ -1,16 +1,33 @@
-# Mobile Application
+# Ayuda en La Primavera — app móvil
 
-React Native application developed with Expo for creating help requests,
-including while offline.
+Frontend en React Native, Expo y JavaScript. Incluye GPS del dispositivo, solicitudes persistentes, conectividad y confirmación **simulada**. No envía solicitudes a administradores.
 
-Requests are saved locally with `expo-sqlite`, preserving their unique ID,
-original timestamp, and pending or received status across app restarts.
-NetInfo detects connectivity changes; pending requests are sent while the app
-is open and the backend is available.
+Usa Node 24 LTS y Expo Go compatible con SDK 58.
 
-A request becomes received only after the backend confirms persistence.
-Retries reuse the same ID to prevent duplicates. Receipt does not imply that
-help has been dispatched.
+```sh
+npm ci
+npm start
+```
 
-The Expo project has not been initialized yet. Setup and run instructions
-will be added when implementation begins.
+Abre el QR con Expo Go en Android o Cámara en iPhone. El teléfono y la computadora deben estar en la misma red para cargar el proyecto de desarrollo.
+
+Guía completa: [frontendAppMovil.md](../frontendAppMovil.md).
+
+```sh
+npm run lint
+npm test
+npx expo export --platform all
+```
+
+## Ubicación en el repositorio
+
+El proyecto Expo vive directamente en `mobile/`. Ejecuta los comandos anteriores
+desde esta carpeta. `node_modules/` y `.expo/` son archivos locales ignorados.
+
+## Integración pendiente con el MVP
+
+Este frontend utiliza actualmente almacenamiento con AsyncStorage, ubicación y
+transporte simulado. El alcance previsto requiere persistencia con expo-sqlite,
+envío al backend compartido y confirmación sólo después del guardado central.
+GPS queda fuera del alcance vigente. Estos ajustes se harán en tareas separadas;
+la reorganización de carpetas no cambia el comportamiento de la aplicación.
