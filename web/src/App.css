@@ -1,0 +1,21 @@
+.home {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px;
+}
+
+.home-label {
+  font-weight: 700;
+  color: #39734d;
+}
+
+.home h1 {
+  margin: 16px 0;
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+  line-height: 1.1;
+}
+
+.home > p:last-child {
+  max-width: 560px;
+  line-height: 1.7;
+}
