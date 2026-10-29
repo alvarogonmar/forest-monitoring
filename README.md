@@ -40,12 +40,12 @@ requests while offline.
 
 This repository currently contains the initial folder structure and documentation.
 Setup commands will be documented in each component as it is implemented.
-The confirmed technologies are React for the website, React Native with Expo
+The confirmed technologies are React with JavaScript for the website, React Native with Expo
 for the mobile app, and Supabase PostgreSQL for the central database.
 The proposed implementation uses Vite, React Router, React Leaflet, and an
 Express/TypeScript shared API with Supabase Auth for credential verification.
 
-See [the complete project structure](estructura%20del%20proyecto.md) for the
+See [the complete project structure](estructura_proyecto.md) for the
 database schema, API contracts, permissions, development plan, and open decisions.
 
 Do not commit credentials or local environment files. When configuration is
