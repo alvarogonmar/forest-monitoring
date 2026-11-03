@@ -140,6 +140,14 @@
   text-decoration: none;
 }
 
+.login-demo-link {
+  display: block;
+  width: fit-content;
+  margin-top: 16px;
+  color: #245440;
+  text-underline-offset: 4px;
+}
+
 .login-page :is(input, button, a):focus-visible {
   outline: 3px solid #39734d;
   outline-offset: 3px;

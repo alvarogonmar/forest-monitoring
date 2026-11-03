@@ -79,6 +79,10 @@ export default function LoginPage() {
           <p className="login-message" role="status">{message}</p>
         </form>
 
+        <Link className="login-demo-link" to="/admin/mapa">
+          Ver panel de demostración
+        </Link>
+
         <Link className="login-back" to="/">
           <span aria-hidden="true">←</span> Volver al inicio
         </Link>
