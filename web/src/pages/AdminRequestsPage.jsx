@@ -1,4 +1,6 @@
-import { demoHelpRequests } from '../data/adminDemo'
+import { getHelpRequests } from '../services/dataService.js'
+import useAsyncData from '../hooks/useAsyncData.js'
+import DataState from '../components/DataState.jsx'
 
 const dateFormat = new Intl.DateTimeFormat('es-MX', {
   dateStyle: 'medium', timeZone: 'America/Mexico_City',
@@ -8,7 +10,20 @@ const timeFormat = new Intl.DateTimeFormat('es-MX', {
 })
 
 export default function AdminRequestsPage() {
+  const resource = useAsyncData(getHelpRequests)
+  const requests = resource.data ?? []
+
   return (
+    <>
+    <div className="admin-toolbar">
+      <span>Solicitudes recibidas · Demostración</span>
+      <button className="data-refresh" type="button" onClick={resource.reload} disabled={resource.status === 'loading'}>
+        Actualizar
+      </button>
+    </div>
+    {resource.status !== 'success' || requests.length === 0
+      ? <DataState status={resource.status} onRetry={resource.reload} emptyMessage="Todavía no hay solicitudes recibidas." />
+      : (
     <section className="admin-card">
       <div className="admin-table-wrapper" tabIndex={0} role="region" aria-label="Tabla de solicitudes de demostración">
         <table className="admin-table">
@@ -22,7 +37,7 @@ export default function AdminRequestsPage() {
             </tr>
           </thead>
           <tbody>
-            {demoHelpRequests.map((request) => (
+            {requests.map((request) => (
               <tr key={request.id}>
                 <th scope="row">{request.id}</th>
                 <td>{dateFormat.format(new Date(request.occurredAt))}</td>
@@ -36,5 +51,7 @@ export default function AdminRequestsPage() {
         </table>
       </div>
     </section>
+    )}
+    </>
   )
 }

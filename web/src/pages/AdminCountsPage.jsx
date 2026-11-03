@@ -1,22 +1,31 @@
 import { useState } from 'react'
-import { demoRoutes } from '../data/routes'
-import { demoCounts } from '../data/adminDemo'
+import { getCountsData } from '../services/dataService.js'
+import useAsyncData from '../hooks/useAsyncData.js'
+import DataState from '../components/DataState.jsx'
 import RoutesMap from '../components/RoutesMap.jsx'
 import './AdminCountsPage.css'
 
 export default function AdminCountsPage() {
-  const [selectedId, setSelectedId] = useState(demoRoutes[0].id)
-  const selected = demoRoutes.find((route) => route.id === selectedId)
+  const [selectedId, setSelectedId] = useState(null)
+  const resource = useAsyncData(getCountsData)
+  const routes = resource.data?.routes ?? []
+  const selected = routes.find((route) => route.id === selectedId) ?? routes[0]
+  const count = resource.data?.counts.find((item) => item.routeId === selected?.id)?.count
+
+  if (resource.status !== 'success' || !selected) {
+    return <DataState status={resource.status} onRetry={resource.reload} emptyMessage="Todavía no hay rutas para consultar sus conteos." />
+  }
 
   return (
     <>
       <div className="admin-toolbar">
         <label htmlFor="admin-count-route">Ruta</label>
-        <select id="admin-count-route" value={selectedId} onChange={(event) => setSelectedId(event.target.value)}>
-          {demoRoutes.map((route) => (
+        <select id="admin-count-route" value={selected.id} onChange={(event) => setSelectedId(event.target.value)}>
+          {routes.map((route) => (
             <option key={route.id} value={route.id}>{route.name}</option>
           ))}
         </select>
+        <button className="data-refresh" type="button" onClick={resource.reload}>Actualizar</button>
       </div>
       <section className="admin-card admin-count-card" aria-label="Conteo y recorrido de la ruta seleccionada">
         <div className="admin-count-summary" aria-live="polite" aria-atomic="true">
@@ -25,7 +34,9 @@ export default function AdminCountsPage() {
             {selected.name}
           </h2>
           <p>Detecciones registradas · Ejemplo</p>
-          <strong className="admin-count">{demoCounts[selectedId]}</strong>
+          {count == null
+            ? <DataState status="empty" emptyMessage="Todavía no hay un conteo disponible para esta ruta." />
+            : <strong className="admin-count">{count}</strong>}
           <p className="admin-count-note">
             El conteo corresponde a detecciones, no a personas distintas.
           </p>
@@ -35,7 +46,7 @@ export default function AdminCountsPage() {
         </div>
         <div className="admin-count-map">
           <h3>Recorrido de la ruta</h3>
-          <RoutesMap routes={[selected]} selectedId={selectedId} onSelect={setSelectedId} />
+          <RoutesMap routes={[selected]} selectedId={selected.id} onSelect={setSelectedId} />
         </div>
       </section>
     </>

@@ -7,7 +7,24 @@ npm install
 npm run dev
 ```
 
-Run `npm run lint` and `npm run build` before opening a pull request.
+Run `npm run lint`, `npm test`, and `npm run build` before opening a pull request.
+
+## Data access and demo scenarios
+
+Pages load data through `src/services/dataService.js` and `useAsyncData` rather
+than importing fixtures directly. Services accept an optional `AbortSignal`;
+unmounting a page or refreshing cancels obsolete work. Keep the exported loader
+functions stable when replacing the demo adapter with HTTP calls.
+
+Service methods currently provide routes, sensor points, counts as
+`{ routeId, count }` records, and help requests. Composite loaders assemble the
+map and counts screens. Errors are not converted to empty responses or zero
+counts. Loading, failed, and empty responses have separate presentation states.
+
+To exercise these states without a backend, copy `.env.example` to `.env.local`
+and choose `VITE_DEMO_SCENARIO=success`, `empty`, or `error`. Restart Vite after
+changing the value. `Actualizar` and `Reintentar` repeat the demo request; fixed
+fixtures remain unchanged. Vite variables are public; never put secrets there.
 
 ## Public routes map
 

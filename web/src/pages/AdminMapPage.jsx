@@ -1,16 +1,21 @@
 import { useState } from 'react'
 import RoutesMap from '../components/RoutesMap.jsx'
 import SensorPointsLayer from '../components/SensorPointsLayer.jsx'
-import { demoRoutes } from '../data/routes'
-import { demoSensorPoints } from '../data/sensorPoints'
+import { getMapData } from '../services/dataService.js'
+import useAsyncData from '../hooks/useAsyncData.js'
+import DataState from '../components/DataState.jsx'
 import './AdminMapPage.css'
 
 export default function AdminMapPage() {
-  const [selectedId, setSelectedId] = useState(null)
+  const [routeId, setSelectedId] = useState(null)
   const [selectedPointId, setSelectedPointId] = useState(null)
-  const visiblePoints = demoSensorPoints.filter((point) => !selectedId || point.routeId === selectedId)
+  const resource = useAsyncData(getMapData)
+  const routes = resource.data?.routes ?? []
+  const points = resource.data?.points ?? []
+  const selectedId = routes.some((route) => route.id === routeId) ? routeId : null
+  const visiblePoints = points.filter((point) => !selectedId || point.routeId === selectedId)
   const selectedPoint = visiblePoints.find((point) => point.id === selectedPointId)
-  const selectedRoute = demoRoutes.find((route) => route.id === selectedPoint?.routeId)
+  const selectedRoute = routes.find((route) => route.id === selectedPoint?.routeId)
 
   function selectRoute(routeId) {
     setSelectedId(routeId)
@@ -18,9 +23,14 @@ export default function AdminMapPage() {
   }
 
   function selectPoint(pointId) {
-    const point = demoSensorPoints.find((item) => item.id === pointId)
+    const point = points.find((item) => item.id === pointId)
+    if (!point) return
     setSelectedPointId(pointId)
     setSelectedId(point.routeId)
+  }
+
+  if (resource.status !== 'success' || routes.length === 0) {
+    return <DataState status={resource.status} onRetry={resource.reload} emptyMessage="Todavía no hay rutas para mostrar en el mapa." />
   }
 
   return (
@@ -33,14 +43,14 @@ export default function AdminMapPage() {
           onChange={(event) => selectRoute(event.target.value || null)}
         >
           <option value="">Todas las rutas</option>
-          {demoRoutes.map((route) => (
+          {routes.map((route) => (
             <option key={route.id} value={route.id}>{route.name}</option>
           ))}
         </select>
         <p className="sensor-toolbar-help">Selecciona un punto para ver sus detalles.</p>
       </div>
       <div className="sensor-map-frame">
-        <RoutesMap routes={demoRoutes} selectedId={selectedId} onSelect={selectRoute} showEndpoints={false}>
+        <RoutesMap routes={routes} selectedId={selectedId} onSelect={selectRoute} showEndpoints={false}>
           <SensorPointsLayer points={visiblePoints} selectedId={selectedPointId} onSelect={selectPoint} />
         </RoutesMap>
 
@@ -56,8 +66,8 @@ export default function AdminMapPage() {
             </div>
             <h2 id="sensor-detail-title">Punto {selectedPoint.id}</h2>
             <p className="sensor-route-name">
-              <span style={{ backgroundColor: selectedRoute.color }} aria-hidden="true" />
-              {selectedRoute.name}
+              <span style={{ backgroundColor: selectedRoute?.color ?? '#153e32' }} aria-hidden="true" />
+              {selectedRoute?.name ?? 'Ruta no disponible'}
             </p>
             <dl>
               <dt>Identificador</dt>
@@ -85,6 +95,9 @@ export default function AdminMapPage() {
             >{point.id}</button>
           ))}
         </div>
+        {visiblePoints.length === 0 && (
+          <DataState status="empty" onRetry={resource.reload} emptyMessage="Todavía no hay puntos de monitoreo para esta selección." />
+        )}
       </section>
     </>
   )
