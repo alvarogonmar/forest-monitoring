@@ -1,5 +1,6 @@
 import forestImage from '../assets/forest.png'
 import VisitTips from '../components/VisitTips.jsx'
+import { Link } from 'react-router'
 
 
 export default function HomePage() {
@@ -25,10 +26,10 @@ export default function HomePage() {
             Conoce los senderos y prepara tu recorrido.
           </p>
 
-          <button className="home-cta" type="button" disabled>
-            Explorar rutas
-            <span aria-hidden="true">→</span>
-          </button>
+        <Link className="home-cta" to="/rutas">
+        Explorar rutas
+        <span aria-hidden="true">→</span>
+        </Link>
         </div>
       </section>
       <VisitTips />

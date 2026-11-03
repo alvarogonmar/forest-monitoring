@@ -1,4 +1,27 @@
-# React + Vite
+# Forest Monitoring Web
+
+## Local development
+
+```sh
+npm install
+npm run dev
+```
+
+Run `npm run lint` and `npm run build` before opening a pull request.
+
+## Public routes map
+
+The `/rutas` page uses Leaflet 1.9 and React Leaflet 5 with OpenStreetMap tiles.
+It needs internet access to load the background map, but no API key or backend.
+Keep the OpenStreetMap attribution visible and follow its tile usage policy:
+https://operations.osmfoundation.org/policies/tiles/
+
+`src/data/routes.js` contains fictional demonstration paths as `[latitude, longitude]`
+pairs, not verified trails. Replace these with approved route coordinates before
+presenting them as real hiking routes. Selecting a card or map path highlights
+the route and fits the map to it; “Ver todas las rutas” restores the overview.
+
+## Vite template notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
