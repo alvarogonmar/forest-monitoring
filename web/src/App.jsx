@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router'
 import SiteHeader from './components/SiteHeader.jsx'
 import HomePage from './pages/HomePage.jsx'
 import RoutesPage from './pages/RoutesPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
 import './App.css'
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/rutas" element={<RoutesPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route
           path="*"
           element={

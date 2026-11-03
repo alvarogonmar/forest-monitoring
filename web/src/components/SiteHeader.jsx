@@ -50,9 +50,9 @@ export default function SiteHeader() {
         <a href="/#visita">Tu visita</a>
         </nav>
 
-        <button className="admin-access" type="button" disabled>
+        <NavLink className="admin-access" to="/login">
           Acceso administrativo
-        </button>
+        </NavLink>
       </div>
     </header>
   )
