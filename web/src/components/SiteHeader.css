@@ -14,25 +14,6 @@
   gap: 24px;
 }
 
-.site-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #153e32;
-  text-decoration: none;
-}
-
-.site-brand span {
-  font-family: Georgia, serif;
-  font-size: 25px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.site-brand svg {
-  flex-shrink: 0;
-}
-
 .site-nav {
   display: flex;
   align-items: center;
@@ -65,10 +46,6 @@
 .site-nav a:hover {
   color: #39734d;
   border-bottom-color: #39734d;
-}
-
-.site-brand {
-  cursor: pointer;
 }
 
 .admin-access {
@@ -122,14 +99,6 @@ a.admin-access[aria-current='page'] {
   .site-header-inner {
     gap: 16px;
     padding: 16px;
-  }
-
-  .site-brand span {
-    font-size: 20px;
-  }
-
-  .site-brand svg {
-    width: 48px;
   }
 
   .admin-access {

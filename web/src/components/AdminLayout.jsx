@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import './AdminLayout.css'
+import ForestBrand from './ForestBrand.jsx'
 
 const sections = [
   { to: '/admin/mapa', label: 'Mapa', title: 'Mapa del bosque', icon: 'M3 5 9 3l6 3 6-3v16l-6 3-6-3-6 2V5Zm6-2v16m6-13v16' },
@@ -14,12 +15,7 @@ export default function AdminLayout() {
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
-        <Link className="admin-brand" to="/">
-          <svg viewBox="0 0 40 48" aria-hidden="true">
-            <path d="M20 1 8 21h6L4 37h12v10h8V37h12L26 21h6Z" fill="currentColor" />
-          </svg>
-          <span>Bosque de<br />La Primavera</span>
-        </Link>
+        <ForestBrand compact />
         <p className="admin-sidebar-label">Panel de administración</p>
         <nav className="admin-nav" aria-label="Navegación administrativa">
           {sections.map((section) => (
