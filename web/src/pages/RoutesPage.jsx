@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { demoRoutes } from '../data/routes'
+import { getRoutes } from '../services/dataService.js'
+import useAsyncData from '../hooks/useAsyncData.js'
+import DataState from '../components/DataState.jsx'
 import RoutesMap from '../components/RoutesMap.jsx'
 import './RoutesPage.css'
 
 export default function RoutesPage() {
   const [selectedId, setSelectedId] = useState(null)
+  const resource = useAsyncData(getRoutes)
+  const routes = resource.data ?? []
 
-  const selectedRoute = demoRoutes.find(
+  const selectedRoute = routes.find(
     (route) => route.id === selectedId,
   )
 
@@ -22,13 +26,15 @@ export default function RoutesPage() {
         Elige una ruta para conocer su recorrido, inicio y final.
       </p>
 
-      <div className="routes-layout">
+      {resource.status !== 'success' || routes.length === 0 ? (
+        <DataState status={resource.status} onRetry={resource.reload} emptyMessage="Todavía no hay rutas disponibles." />
+      ) : <div className="routes-layout">
         <aside className="routes-sidebar" aria-labelledby="routes-list-title">
           <h2 id="routes-list-title">Rutas disponibles</h2>
           <p>Recorridos de demostración</p>
 
           <ul className="routes-list">
-            {demoRoutes.map((route) => (
+            {routes.map((route) => (
               <li key={route.id}>
                 <button
                   type="button"
@@ -73,8 +79,8 @@ export default function RoutesPage() {
           )}
         </aside>
 
-        <RoutesMap routes={demoRoutes} selectedId={selectedId} onSelect={setSelectedId} />
-      </div>
+        <RoutesMap routes={routes} selectedId={selectedRoute?.id ?? null} onSelect={setSelectedId} />
+      </div>}
     </main>
   )
 }
