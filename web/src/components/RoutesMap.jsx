@@ -28,7 +28,7 @@ function MapViewport({ routes, selectedId }) {
   return null
 }
 
-export default function RoutesMap({ routes, selectedId, onSelect }) {
+export default function RoutesMap({ routes, selectedId, onSelect, children, showEndpoints = true }) {
   const [tileError, setTileError] = useState(false)
   const [tileVersion, setTileVersion] = useState(0)
   const bounds = latLngBounds(routes.flatMap((route) => route.coordinates))
@@ -67,7 +67,7 @@ export default function RoutesMap({ routes, selectedId, onSelect }) {
             )
           })}
 
-          {routes.filter((route) => !selectedId || route.id === selectedId).map((route) => (
+          {showEndpoints && routes.filter((route) => !selectedId || route.id === selectedId).map((route) => (
             <CircleMarker
               key={`start-${route.id}`}
               center={route.coordinates[0]}
@@ -79,7 +79,7 @@ export default function RoutesMap({ routes, selectedId, onSelect }) {
             </CircleMarker>
           ))}
 
-          {routes.filter((route) => !selectedId || route.id === selectedId).map((route) => (
+          {showEndpoints && routes.filter((route) => !selectedId || route.id === selectedId).map((route) => (
             <Marker
               key={`finish-${route.id}`}
               position={route.coordinates.at(-1)}
@@ -91,13 +91,13 @@ export default function RoutesMap({ routes, selectedId, onSelect }) {
               <Tooltip>Final · {route.name}</Tooltip>
             </Marker>
           ))}
+          {children}
         </MapContainer>
         <span className="routes-map-badge">Recorridos ficticios</span>
       </div>
 
       <div className="routes-map-legend">
-        <span>● Inicio</span>
-        <span>⚑ Final</span>
+        {showEndpoints ? <><span>● Inicio</span><span>⚑ Final</span></> : <span>● Punto de monitoreo</span>}
         <span>Usa + / − para acercarte o alejarte.</span>
       </div>
       <p className="routes-map-note">
