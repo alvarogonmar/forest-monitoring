@@ -1,0 +1,81 @@
+.routes-map-section {
+  min-width: 0;
+}
+
+.routes-map-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #d4dfcf;
+  border-radius: 16px;
+}
+
+.routes-map {
+  height: 550px;
+  width: 100%;
+  z-index: 0;
+  background: #e7eddf;
+  font-family: inherit;
+}
+
+.routes-map-badge {
+  position: absolute;
+  z-index: 1;
+  top: 14px;
+  right: 14px;
+  max-width: calc(100% - 80px);
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff;
+  color: #153e32;
+  font-size: 12px;
+  box-shadow: 0 2px 8px #153e3220;
+  pointer-events: none;
+}
+
+.route-finish-marker {
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 6px;
+  background: #153e32;
+  color: #fff;
+  font-size: 23px;
+  line-height: 1;
+  box-shadow: 0 2px 5px #153e3240;
+}
+
+.routes-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.routes-map-note {
+  color: #52645a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.routes-map-error {
+  padding: 12px;
+  border: 1px solid #dfc78e;
+  border-radius: 8px;
+  background: #fff7e5;
+  color: #654b1c;
+}
+
+.routes-map-error p {
+  margin: 0 0 8px;
+}
+
+.routes-map-error button {
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .routes-map {
+    height: 380px;
+  }
+}

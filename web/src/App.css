@@ -93,3 +93,13 @@
     letter-spacing: 0.18em;
   }
 }
+
+.home-cta {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.home-cta:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}

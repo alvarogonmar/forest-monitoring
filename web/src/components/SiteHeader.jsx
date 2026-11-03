@@ -1,4 +1,5 @@
 import './SiteHeader.css'
+import { NavLink } from 'react-router'
 
 function ForestLogo() {
   return (
@@ -31,11 +32,22 @@ export default function SiteHeader() {
         </a>
 
         <nav className="site-nav" aria-label="Navegación principal">
-          <a className="site-nav-active" href="/" aria-current="page">
+        <NavLink
+            to="/"
+            end
+            className={({ isActive }) => isActive ? 'site-nav-active' : ''}
+        >
             Inicio
-          </a>
-          <button type="button" disabled>Rutas</button>
-          <a href="#visita">Tu visita</a>
+        </NavLink>
+
+        <NavLink
+            to="/rutas"
+            className={({ isActive }) => isActive ? 'site-nav-active' : ''}
+        >
+            Rutas
+        </NavLink>
+
+        <a href="/#visita">Tu visita</a>
         </nav>
 
         <button className="admin-access" type="button" disabled>
