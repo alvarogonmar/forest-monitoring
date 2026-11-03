@@ -1,0 +1,49 @@
+.admin-count-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: 28px;
+}
+
+.admin-count-summary {
+  min-width: 0;
+}
+
+.admin-count-summary h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.admin-count-route-color {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.admin-count-demo-note {
+  color: #52645a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.admin-count-map {
+  min-width: 0;
+}
+
+.admin-count-map h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.admin-count-map .routes-map {
+  height: 330px;
+}
+
+@media (max-width: 1150px) {
+  .admin-count-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

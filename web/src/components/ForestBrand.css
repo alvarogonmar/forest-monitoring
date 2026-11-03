@@ -1,0 +1,48 @@
+.forest-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #153e32;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.forest-brand svg {
+  flex-shrink: 0;
+}
+
+.forest-brand span {
+  font-family: Georgia, serif;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.forest-brand-compact {
+  gap: 10px;
+}
+
+.forest-brand-compact svg {
+  width: 48px;
+  height: 40px;
+}
+
+.forest-brand-compact span {
+  font-size: 21px;
+}
+
+.forest-brand:focus-visible {
+  outline: 3px solid #39734d;
+  outline-offset: 5px;
+}
+
+@media (max-width: 480px) {
+  .forest-brand span {
+    font-size: 20px;
+  }
+
+  .forest-brand svg {
+    width: 48px;
+  }
+}
