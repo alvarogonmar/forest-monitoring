@@ -1,16 +1,27 @@
-import { Route, Routes } from 'react-router'
+import { Navigate, Outlet, Route, Routes } from 'react-router'
 import SiteHeader from './components/SiteHeader.jsx'
 import HomePage from './pages/HomePage.jsx'
 import RoutesPage from './pages/RoutesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import AdminLayout from './components/AdminLayout.jsx'
+import AdminMapPage from './pages/AdminMapPage.jsx'
+import AdminCountsPage from './pages/AdminCountsPage.jsx'
+import AdminRequestsPage from './pages/AdminRequestsPage.jsx'
 import './App.css'
 
-export default function App() {
+function PublicLayout() {
   return (
     <>
       <SiteHeader />
+      <Outlet />
+    </>
+  )
+}
 
-      <Routes>
+export default function App() {
+  return (
+    <Routes>
+      <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/rutas" element={<RoutesPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -23,7 +34,13 @@ export default function App() {
             </main>
           }
         />
-      </Routes>
-    </>
+      </Route>
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="mapa" replace />} />
+        <Route path="mapa" element={<AdminMapPage />} />
+        <Route path="conteos" element={<AdminCountsPage />} />
+        <Route path="solicitudes" element={<AdminRequestsPage />} />
+      </Route>
+    </Routes>
   )
 }
