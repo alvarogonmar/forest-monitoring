@@ -1,6 +1,6 @@
 # Ayuda en La Primavera — app móvil
 
-Frontend en React Native, Expo y JavaScript. Incluye GPS del dispositivo, solicitudes persistentes, conectividad y confirmación **simulada**. No envía solicitudes a administradores.
+Frontend en React Native, Expo y JavaScript. Usa un Stack de Expo Router con Inicio, Pendiente, Enviando y Confirmada. Incluye GPS del dispositivo, solicitudes persistentes, conectividad y confirmación **simulada**. No envía solicitudes a administradores.
 
 Usa Node 24 LTS y Expo Go compatible con SDK 58.
 
@@ -11,7 +11,7 @@ npm start
 
 Abre el QR con Expo Go en Android o Cámara en iPhone. El teléfono y la computadora deben estar en la misma red para cargar el proyecto de desarrollo.
 
-Guía completa: [frontendAppMovil.md](../frontendAppMovil.md).
+Guía completa: [frontendAppMovil.md](./frontendAppMovil.md).
 
 ```sh
 npm run lint
@@ -31,3 +31,7 @@ transporte simulado. El alcance previsto requiere persistencia con expo-sqlite,
 envío al backend compartido y confirmación sólo después del guardado central.
 GPS queda fuera del alcance vigente. Estos ajustes se harán en tareas separadas;
 la reorganización de carpetas no cambia el comportamiento de la aplicación.
+
+## Navegación
+
+El Stack está en `src/app/_layout.js`. Sus pantallas comparten una sola solicitud mediante `HelpRequestProvider`; las rutas se actualizan según el estado guardado.

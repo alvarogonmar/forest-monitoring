@@ -35,7 +35,9 @@
           "isIosBackgroundLocationEnabled": false,
           "isAndroidBackgroundLocationEnabled": false
         }
-      ]
-    ]
+      ],
+      "expo-router"
+    ],
+    "scheme": "ayuda-la-primavera"
   }
 }
