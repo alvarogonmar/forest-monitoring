@@ -10,7 +10,7 @@ Se creó `mobile/` con React Native, Expo SDK 58 y JavaScript. Se reprodujeron l
 
 ### Paso 1: crear el proyecto
 
-Se creó el proyecto con `create-expo-app` y se migró todo el código de la app a JavaScript. Se eliminaron las anotaciones de tipos, las interfaces, `tsconfig.json` y las dependencias directas de TypeScript; la entrada de Expo es `index.js`. Se mantuvo el proyecto dentro de `forest-monitoring/`, sin modificar la documentación anterior ni crear otro repositorio. `app.json` define el nombre, orientación vertical, apariencia clara, identificadores de app y permisos de ubicación en primer plano.
+Se creó el proyecto con `create-expo-app` y se migró todo el código de la app a JavaScript. Se eliminaron las anotaciones de tipos, las interfaces, `tsconfig.json` y las dependencias directas de TypeScript; la entrada de Expo es `expo-router/entry`. Se mantuvo el proyecto dentro de `forest-monitoring/`, sin modificar la documentación anterior ni crear otro repositorio. `app.json` define el nombre, orientación vertical, apariencia clara, identificadores de app y permisos de ubicación en primer plano.
 
 ### Paso 2: instalar los módulos compatibles con Expo
 
@@ -26,10 +26,12 @@ Se instalaron con `expo install`:
 | `react-native-svg` | Dibujar árboles e iconos sin imágenes externas |
 | `expo-status-bar` | Adaptar la barra del sistema al fondo claro |
 | `react-native-web`, `react-dom`, `@expo/metro-runtime` | Permitir una vista previa web |
+| `expo-router`, `react-native-screens` | Navegador Stack y pantallas nativas |
+| `expo-linking`, `expo-constants` | Integración de rutas y enlaces con Expo |
 
 ### Paso 3: reproducir la interfaz
 
-`App.js` contiene una pantalla cuyo contenido cambia con el estado de la solicitud. No se necesita navegación entre rutas para este flujo. Se usaron el verde bosque, fondo marfil, naranja de espera, rojo del botón y verde de confirmación de las referencias. Se agregaron desplazamiento para pantallas pequeñas, etiquetas de accesibilidad y botones de reintento.
+`src/app/_layout.js` define un **Stack de Expo Router** con cuatro rutas: inicio (`/`), pendiente (`/pendiente`), enviando (`/enviando`) y confirmada (`/confirmada`). Cada ruta monta una pantalla independiente de `src/screens/`. Se usaron el verde bosque, fondo marfil, naranja de espera, rojo del botón y verde de confirmación de las referencias. Se agregaron desplazamiento para pantallas pequeñas, etiquetas de accesibilidad y botones de reintento.
 
 El logo se recreó con formas SVG y texto; no es una exportación oficial del logo de Figma. La fecha y el folio son dinámicos; los valores de ejemplo de las capturas no están fijados en el código. El folio visible usa los primeros ocho caracteres del UUID, mientras que internamente se conserva el UUID completo.
 
@@ -113,27 +115,48 @@ El futuro adaptador deberá:
 
 No se añadió endpoint, autenticación, dashboard ni backend en esta entrega.
 
+### Paso 10: navegar con Stack
+
+Se sustituyó el contenido condicional de `App.js` por rutas reales de Expo Router, manteniendo JavaScript. `Stack.Screen` registra Inicio, Pendiente, Enviando y Confirmada en `src/app/_layout.js`. La entrada antigua `index.js` y `App.js` se retiraron; Expo inicia ahora en `expo-router/entry`.
+
+`HelpRequestProvider` está por encima del Stack, por lo que conserva una sola instancia del controlador aunque cambie la pantalla. Esto evita volver a pedir GPS, restaurar el almacenamiento o duplicar envíos durante la navegación.
+
+`HelpRoute` consulta `getRequestRoute` y usa `Redirect` para reemplazar la ruta cuando cambia el estado: inicio → pendiente → enviando → confirmada. Si el envío se interrumpe, vuelve a pendiente; al iniciar otra demostración vuelve a inicio. Las transiciones reemplazan la entrada actual para no acumular pantallas antiguas del mismo SOS. El gesto de volver está deshabilitado en el Stack. Los enlaces directos y las URL antiguas se corrigen según la solicitud guardada: abrir `/confirmada` no puede fabricar una recepción.
+
+Mientras se recupera el almacenamiento se muestra la vista de carga, sin decidir una ruta prematuramente. Se conservaron los mismos textos, diseño, coordenadas y mensajes de error en los componentes compartidos.
+
 ## 3. Archivos del proyecto
 
 ```text
 forest-monitoring/
 ├── frontendAppMovil.md
 └── mobile/
-    ├── App.js                       # Las cuatro vistas y sus estados
-    ├── app.json                      # Configuración y permisos nativos
-    ├── index.js                      # Entrada de Expo
-    ├── package.json                  # Dependencias y comandos
-    ├── package-lock.json             # Versiones reproducibles
-    ├── .nvmrc                        # Node 24
+    ├── app.json                       # Configuración, permisos y plugin Router
+    ├── package.json                   # Entrada: expo-router/entry
+    ├── package-lock.json
+    ├── .nvmrc
     ├── eslint.config.js
     ├── src/
-    │   ├── components/Icons.js       # Logo e iconos SVG
-    │   ├── core/request.js           # Controlador de solicitudes
-    │   ├── hooks/useHelpRequest.js   # React, conexión y ciclo de vida
+    │   ├── app/
+    │   │   ├── _layout.js             # Stack y proveedor compartido
+    │   │   ├── index.js               # Inicio
+    │   │   ├── pendiente.js           # Solicitud guardada
+    │   │   ├── enviando.js            # Envío en curso
+    │   │   ├── confirmada.js          # Confirmación simulada
+    │   │   └── +not-found.js          # Recuperación de enlaces desconocidos
+    │   ├── screens/                   # Contenido de las cuatro pantallas
+    │   ├── components/                # Encabezado, tarjetas, iconos y protección de rutas
+    │   ├── context/HelpRequestContext.js # Un controlador para todo el Stack
+    │   ├── navigation/requestRoute.js # Ruta correspondiente al estado real
+    │   ├── ui/theme.js                # Colores y estilos compartidos
+    │   ├── core/request.js            # Ciclo de vida de la solicitud
+    │   ├── hooks/useHelpRequest.js    # Conexión y ciclo de vida del dispositivo
     │   └── services/
-    │       ├── device.js             # GPS, UUID y almacenamiento
-    │       └── transport.js          # Adaptador simulado sustituible
-    └── tests/request.test.mjs        # Pruebas del ciclo de vida
+    │       ├── device.js              # GPS, UUID y almacenamiento
+    │       └── transport.js           # Envío simulado
+    └── tests/
+        ├── request.test.mjs
+        └── navigation.test.mjs
 ```
 
 ## 4. Cómo ejecutarla en tu teléfono
@@ -143,7 +166,7 @@ forest-monitoring/
 3. En la terminal ejecuta:
 
 ```sh
-cd mobile
+cd /Users/valeriaavilan/Documents/ITC/semestre5/integracionSeguridad/adminProyectos/forest-monitoring/mobile
 npm ci
 npm start
 ```
@@ -183,7 +206,7 @@ La web sirve para revisar el diseño con `npm run web`. El navegador puede limit
 
 ## 6. Verificación técnica
 
-Tras la migración a JavaScript, se ejecutaron correctamente:
+Tras incorporar el Stack en JavaScript, se ejecutaron correctamente:
 
 ```sh
 npm run lint
@@ -193,9 +216,9 @@ npx expo export --platform all
 
 La exportación generó bundles de Android, iOS y web; no equivale a instalar ni probar un APK/IPA en hardware. Se revisó visualmente la pantalla de inicio en una vista web de 390 × 844. Las pruebas automatizadas usan coordenadas ficticias mediante dependencias inyectadas, sin acceder al GPS de la computadora. Aún hace falta ejecutar el guion manual de permisos, GPS y cierre en tu teléfono físico.
 
-Las pruebas cubren persistencia y reapertura, envío con internet, pulsaciones duplicadas, permiso GPS denegado, fallos de almacenamiento, datos ilegibles, corte de conexión durante envío, segundo plano, restauración de confirmación y conectividad desconocida.
+Pasaron 15 pruebas: las 10 del ciclo de vida de la solicitud y 5 de navegación. Estas últimas comprueban la espera de restauración, inicio, pendiente, enviando, confirmación persistida y el recorrido completo con un solo envío. En el navegador se comprobó que abrir `/confirmada` sin solicitud devuelve al inicio y que el botón navega a `/pendiente`. La validación nativa en un teléfono sigue pendiente.
 
-El diagnóstico oficial `npx expo-doctor` pasó 20 de 20 comprobaciones. `npm audit --omit=dev` reportó 8 alertas transitivas (5 bajas y 3 altas), propagadas por herramientas de Expo, incluyendo `deepmerge` y `zod`. La solución automática propuesta por npm implicaba bajar Expo a SDK 51, incompatible con esta entrega; no se aplicó `audit fix --force`. Estas alertas quedan pendientes de una actualización compatible de las dependencias y deben revisarse antes de publicar. La instalación también mostró avisos cuando el shell utilizó Node 25; el proyecto fija Node 24 en `.nvmrc` para usar una versión soportada.
+El diagnóstico oficial `npx expo-doctor` se usa para comprobar compatibilidad. Al incorporar el Stack se actualizaron Expo a `~58.0.23` y Safe Area Context a `~5.11.1` según sus recomendaciones, conservando SDK 58. Después de las actualizaciones compatibles, npm reportó 13 alertas de dependencias (12 moderadas y 1 alta); se deben revisar antes de publicar. No se aplicó `audit fix --force`. El proyecto fija Node 24 en `.nvmrc` para usar una versión soportada.
 
 ## 7. Referencias técnicas utilizadas
 
