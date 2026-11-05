@@ -11,7 +11,7 @@ npm start
 
 Abre el QR con Expo Go en Android o Cámara en iPhone. El teléfono y la computadora deben estar en la misma red para cargar el proyecto de desarrollo.
 
-Guía completa: [frontendAppMovil.md](../frontendAppMovil.md).
+Guía completa: [frontendAppMovil.md](./frontendAppMovil.md).
 
 ```sh
 npm run lint

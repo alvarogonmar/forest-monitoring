@@ -1,0 +1,162 @@
+.routes-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+.routes-breadcrumb {
+  margin: 0 0 16px;
+  color: #52645a;
+  font-size: 14px;
+}
+
+.routes-breadcrumb a {
+  text-decoration: none;
+}
+
+.routes-page h1 {
+  margin: 0 0 12px;
+  font-family: Georgia, serif;
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
+  line-height: 1.1;
+}
+
+.routes-description {
+  margin: 0 0 32px;
+  color: #52645a;
+  line-height: 1.6;
+}
+
+.routes-layout {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.routes-sidebar {
+  padding: 24px;
+  border: 1px solid #e2e7e0;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.routes-sidebar h2 {
+  margin: 0 0 8px;
+  font-family: Georgia, serif;
+  font-size: 28px;
+}
+
+.routes-sidebar > p {
+  color: #52645a;
+  line-height: 1.6;
+}
+
+.routes-list {
+  display: grid;
+  gap: 14px;
+  margin: 24px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.route-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 16px;
+  border: 1px solid #e2e7e0;
+  border-radius: 12px;
+  background: #fff;
+  color: #153e32;
+  text-align: left;
+  cursor: pointer;
+}
+
+.route-card:hover {
+  background: #f5f7f0;
+}
+
+.route-card[aria-pressed='true'] {
+  border-color: #153e32;
+  background: #edf2e9;
+}
+
+.route-card:focus-visible {
+  outline: 3px solid #39734d;
+  outline-offset: 3px;
+}
+
+.route-color {
+  flex-shrink: 0;
+  width: 30px;
+  height: 6px;
+  border-radius: 4px;
+}
+
+.route-card-text {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+}
+
+.route-card-text strong {
+  font-family: Georgia, serif;
+  font-size: 19px;
+}
+
+.route-card-text > span {
+  color: #52645a;
+  font-size: 14px;
+}
+
+.routes-help {
+  padding-top: 20px;
+  border-top: 1px solid #e2e7e0;
+  font-size: 14px;
+}
+
+.route-details {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e7e0;
+}
+
+.route-details h3 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: 22px;
+}
+
+.route-details p,
+.route-details dt {
+  color: #52645a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.route-details dd {
+  margin: 4px 0 16px;
+  overflow-wrap: anywhere;
+}
+
+.routes-reset {
+  padding: 12px 16px;
+  border: 1px solid #153e32;
+  border-radius: 8px;
+  background: #fff;
+  color: #153e32;
+  cursor: pointer;
+}
+
+.routes-reset:focus-visible {
+  outline: 3px solid #39734d;
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .routes-layout {
+    grid-template-columns: 1fr;
+  }
+
+}

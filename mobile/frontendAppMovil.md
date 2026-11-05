@@ -129,8 +129,8 @@ Mientras se recupera el almacenamiento se muestra la vista de carga, sin decidir
 
 ```text
 forest-monitoring/
-├── frontendAppMovil.md
 └── mobile/
+    ├── frontendAppMovil.md            # Guía del frontend móvil
     ├── app.json                       # Configuración, permisos y plugin Router
     ├── package.json                   # Entrada: expo-router/entry
     ├── package-lock.json

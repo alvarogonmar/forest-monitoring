@@ -1,0 +1,48 @@
+.data-state {
+  padding: 28px;
+  border: 1px solid #e2e7e0;
+  border-radius: 14px;
+  background: #fff;
+  color: #52645a;
+  line-height: 1.6;
+}
+
+.data-state[role='alert'] {
+  border-color: #dfc78e;
+  background: #fff7e5;
+  color: #654b1c;
+}
+
+.data-state p {
+  margin: 0 0 12px;
+}
+
+.data-state p:last-child {
+  margin-bottom: 0;
+}
+
+.data-state button,
+.data-refresh {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid #153e32;
+  border-radius: 8px;
+  background: #fff;
+  color: #153e32;
+  cursor: pointer;
+}
+
+.data-refresh {
+  margin-left: auto;
+}
+
+.data-refresh:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.data-state button:focus-visible,
+.data-refresh:focus-visible {
+  outline: 3px solid #39734d;
+  outline-offset: 3px;
+}
