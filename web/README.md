@@ -1,56 +1,83 @@
-# Forest Monitoring Web
+# Website and Dashboard — Forest Monitoring
 
-## Local development
+Public website for exploring routes and a demonstration dashboard for viewing
+sensors, counts, and help requests. See the [main README](../README.md) for the
+system structure, architecture, technical decisions, and navigation.
+
+## Requirements
+
+- Node.js 24 and npm to use the same major version as the mobile app.
+- A modern browser.
+- Internet access to load OpenStreetMap tiles.
+
+## Installation and Development
+
+From the repository root:
 
 ```sh
-npm install
+cd web
+npm ci
 npm run dev
 ```
 
-Run `npm run lint`, `npm test`, and `npm run build` before opening a pull request.
+Open the address printed by Vite in the terminal.
 
-## Data access and demo scenarios
+## Demo Configuration
 
-Pages load data through `src/services/dataService.js` and `useAsyncData` rather
-than importing fixtures directly. Services accept an optional `AbortSignal`;
-unmounting a page or refreshing cancels obsolete work. Keep the exported loader
-functions stable when replacing the demo adapter with HTTP calls.
+From `web/`, copy the configuration example:
 
-Service methods currently provide routes, sensor points, counts as
-`{ routeId, count }` records, and help requests. Composite loaders assemble the
-map and counts screens. Errors are not converted to empty responses or zero
-counts. Loading, failed, and empty responses have separate presentation states.
+```sh
+cp .env.example .env.local
+```
 
-To exercise these states without a backend, copy `.env.example` to `.env.local`
-and choose `VITE_DEMO_SCENARIO=success`, `empty`, or `error`. Restart Vite after
-changing the value. `Actualizar` and `Reintentar` repeat the demo request; fixed
-fixtures remain unchanged. Vite variables are public; never put secrets there.
+Select the scenario using `VITE_DEMO_SCENARIO`:
 
-## Public routes map
+| Value | Behavior |
+| --- | --- |
+| `success` | Returns fictional demonstration data. |
+| `empty` | Returns valid empty results. |
+| `error` | Simulates a query failure. |
 
-The `/rutas` page uses Leaflet 1.9 and React Leaflet 5 with OpenStreetMap tiles.
-It needs internet access to load the background map, but no API key or backend.
-Keep the OpenStreetMap attribution visible and follow its tile usage policy:
-https://operations.osmfoundation.org/policies/tiles/
+Restart Vite after changing the value. The Actualizar (Refresh) and Reintentar
+(Retry) buttons repeat the scenario's query; they do not generate new data.
+`VITE_` variables are visible to the client and must not contain secrets.
 
-`src/data/routes.js` contains fictional demonstration paths as `[latitude, longitude]`
-pairs, not verified trails. Replace these with approved route coordinates before
-presenting them as real hiking routes. Selecting a card or map path highlights
-the route and fits the map to it; “Ver todas las rutas” restores the overview.
+## Tests and Build
 
-## Vite template notes
+From `web/`:
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+```sh
+npm run lint
+npm test
+npm run build
+```
 
-Currently, two official plugins are available:
+Automated tests check the data service. To preview the local build after running
+`npm run build`:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```sh
+npm run preview
+```
 
-## React Compiler
+## Manual Checks
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Open Home and Routes; select a route using a card or the map.
+2. Open the demonstration dashboard and review Map, Counts, and Requests.
+3. Change scenarios to check loading, empty results, and errors.
+4. Review the screens at viewport widths of 360 and 1280 px.
 
-## Expanding the ESLint configuration
+## Map Considerations
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+`src/data/routes.js` contains fictional routes, not verified trails. Replace them
+with approved coordinates before presenting them as real routes.
+Keep OpenStreetMap attribution visible and follow its
+[tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
+
+## Integration Status
+
+Data comes from the simulated adapter in `src/services/dataService.js`.
+Pages use `useAsyncData` to manage loading, errors, and query cancellation.
+When integrating the API, replace the adapter while preserving its contracts.
+
+The login and dashboard are demonstrations without an authenticated session.
+Authentication and backend authorization for administrative queries remain pending.

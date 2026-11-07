@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# Local documentation
+/frontendAppMovil.md
+
 # Expo
 .expo/
 dist/
