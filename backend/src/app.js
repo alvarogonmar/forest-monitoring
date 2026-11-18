@@ -1,10 +1,12 @@
 import express from 'express';
+import cors from 'cors';
 import { ApiError } from './errors.js';
 import { validateHelpRequest } from './validation/helpRequest.js';
 
-export function createApp({ routesRepository = null, helpRequestsRepository = null } = {}) {
+export function createApp({ routesRepository = null, helpRequestsRepository = null, allowedOrigins = [] } = {}) {
     const app = express();
     app.disable('x-powered-by');
+    app.use(cors({ origin: allowedOrigins, methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type'] }));
 
     app.use('/api', (_request, response, next) => {
         response.set('Cache-Control', 'no-store');

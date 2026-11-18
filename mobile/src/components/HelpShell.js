@@ -24,7 +24,7 @@ export default function HelpShell({ children }) {
               {state.online === null ? 'Comprobando conexión' : online ? 'Conexión disponible' : 'Sin conexión'}
             </Text>
           </View>
-          <View style={styles.demo}><View style={styles.demoDot} /><Text style={styles.demoText}>Modo demostración · envío simulado</Text></View>
+          <View style={styles.demo}><View style={styles.demoDot} /><Text style={styles.demoText}>Prototipo académico · envío al servidor</Text></View>
         </View>
         <View style={[styles.main, { marginTop: compact ? 44 : 70 }]} accessibilityLiveRegion="polite">
           {children}

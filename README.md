@@ -48,17 +48,19 @@ flowchart LR
     Mobile <--> Local[("expo-sqlite: planned local storage")]
 ```
 
-| Planned Service | Purpose | Rationale |
-| --- | --- | --- |
-| Node.js with Express and JavaScript | Shared API for receiving records, providing queries, and controlling access. | Centralizes rules and contracts; keeps JavaScript as the language for clients and the API. |
-| Supabase PostgreSQL | Central database for routes, points, detections, and requests. | Supports data relationships and uniqueness constraints to prevent duplicate records. |
-| Supabase Auth | Administrative credential verification. | Delegates credential management; the API will continue checking permissions and managing dashboard sessions. |
+| Planned Service                     | Purpose                                                                      | Rationale                                                                                                    |
+| ----------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Node.js with Express and JavaScript | Shared API for receiving records, providing queries, and controlling access. | Centralizes rules and contracts; keeps JavaScript as the language for clients and the API.                   |
+| Supabase PostgreSQL                 | Central database for routes, points, detections, and requests.               | Supports data relationships and uniqueness constraints to prevent duplicate records.                         |
+| Supabase Auth                       | Administrative credential verification.                                      | Delegates credential management; the API will continue checking permissions and managing dashboard sessions. |
 
-**Integration status:** the app uses simulated transport and confirmation; the
-website uses demonstration data and has no real administrative session. The API,
-Supabase Auth, and central integration remain pending. Final mobile persistence
-will use `expo-sqlite`; that integration is also pending. Confirmed receipt will
-mean that the backend saved the request, without implying it has been attended to.
+**Integration status:** the mobile app now sends help requests to the Express API
+and validates real persisted receipts; the owner confirmed the basic flow on a
+physical iPhone, receipt restoration and retry after a backend outage. Local
+storage currently uses AsyncStorage; the planned SQLite migration remains pending.
+The API reads public routes and persists help requests in Supabase. The website
+still uses demonstration data. Administrative login, hardware ingestion and alert
+processing remain pending. Receipt confirms storage, not human attendance.
 
 ### 1. Mobile App
 
@@ -109,7 +111,7 @@ flowchart TD
     Controller --> Services["src/services: device adapters"]
     Services --> Storage[("expo-sqlite: planned local persistence")]
     Services --> Location["expo-location: current location implementation"]
-    Services --> Transport["Current simulated transport / future API"]
+    Services --> Transport["HTTP transport to the Express API"]
 ```
 
 Routes determine which screen to display. Screens consume state and actions from
@@ -118,16 +120,16 @@ services perform device operations.
 
 #### Architecture Decisions
 
-| Decision | Why This Structure or Service Was Chosen |
-| --- | --- |
-| React Native with Expo for the mobile app | Allows maintaining an app with shared components for Android and iOS within the Expo environment already used by the team. |
-| Separate routes, screens, components, logic, and services | Gives each responsibility a clear location. Allows changing a screen without modifying storage and testing request logic without a phone. |
-| Share state through HelpRequestProvider | Maintains a single controller instance for all screens. A transition does not restart data restoration or create another request. |
-| Save locally before transmitting | Keeps a pending request even without a connection and restores it when the app is reopened. We will use expo-sqlite to store requests in a local database. |
-| Encapsulate sending in a service | Allows replacing simulated transport with API requests without adding network logic to each screen. |
-| Use a shared API for mobile, web, and Raspberry Pi | Centralizes validation, permissions, and persistence rules so all clients use the same contract. Express and JavaScript are the proposed implementation. |
-| Use Supabase PostgreSQL as the central database | The relational model associates routes, sensors, and detections, and supports constraints to prevent duplicate IDs. The managed service reduces initial infrastructure setup. |
-| Use Supabase Auth for administrative credentials | Delegates credential verification to a specialized service. The API will remain responsible for checking which operations an administrator can perform. |
+| Decision                                                  | Why This Structure or Service Was Chosen                                                                                                                                      |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| React Native with Expo for the mobile app                 | Allows maintaining an app with shared components for Android and iOS within the Expo environment already used by the team.                                                    |
+| Separate routes, screens, components, logic, and services | Gives each responsibility a clear location. Allows changing a screen without modifying storage and testing request logic without a phone.                                     |
+| Share state through HelpRequestProvider                   | Maintains a single controller instance for all screens. A transition does not restart data restoration or create another request.                                             |
+| Save locally before transmitting                          | Keeps a pending request even without a connection and restores it when the app is reopened. We will use expo-sqlite to store requests in a local database.                    |
+| Encapsulate sending in a service                          | Allows replacing simulated transport with API requests without adding network logic to each screen.                                                                           |
+| Use a shared API for mobile, web, and Raspberry Pi        | Centralizes validation, permissions, and persistence rules so all clients use the same contract. Express and JavaScript are the proposed implementation.                      |
+| Use Supabase PostgreSQL as the central database           | The relational model associates routes, sensors, and detections, and supports constraints to prevent duplicate IDs. The managed service reduces initial infrastructure setup. |
+| Use Supabase Auth for administrative credentials          | Delegates credential verification to a specialized service. The API will remain responsible for checking which operations an administrator can perform.                       |
 
 Final local persistence will use `expo-sqlite` to preserve pending requests, their
 identifiers, and original timestamps even when the app closes. Its integration is
@@ -142,12 +144,12 @@ navigation between screens through route files.
 
 Stack configuration is in `mobile/src/app/_layout.js` and uses these routes:
 
-| Route | File | Screen |
-| --- | --- | --- |
-| `/` | `mobile/src/app/index.js` | Home and help button. |
-| `/pendiente` | `mobile/src/app/pendiente.js` | Saved request and retry option. |
-| `/enviando` | `mobile/src/app/enviando.js` | Request being sent. |
-| `/confirmada` | `mobile/src/app/confirmada.js` | Confirmation, currently simulated. |
+| Route         | File                           | Screen                             |
+| ------------- | ------------------------------ | ---------------------------------- |
+| `/`           | `mobile/src/app/index.js`      | Home and help button.              |
+| `/pendiente`  | `mobile/src/app/pendiente.js`  | Saved request and retry option.    |
+| `/enviando`   | `mobile/src/app/enviando.js`   | Request being sent.                |
+| `/confirmada` | `mobile/src/app/confirmada.js` | Confirmation after a persisted API receipt. |
 
 ```mermaid
 stateDiagram-v2
@@ -262,31 +264,31 @@ empty list.
 
 #### Architecture Decisions
 
-| Decision | Why We Chose It |
-| --- | --- |
-| React with JavaScript | Allows building screens with reusable components while maintaining the language agreed upon by the team. |
-| Vite | Provides a development server and build process for the website. |
-| Separate pages, components, hooks, and services | Separates presentation, loading, and data access, facilitating maintenance and isolated tests. |
-| Share public and administrative layouts | Reuses headers and navigation without repeating them on each screen. Does not replace the authorization controls the API must apply. |
-| React Router | Identifies each view by its URL, supports nested routes, and shares layouts between related screens. |
-| Leaflet and React Leaflet | Integrate interactive maps, routes, and markers into React components. |
-| Replaceable data service | Allows development with controlled scenarios and backend integration without changing the data source in each page. |
-| Separate public and administrative information | Public routes will display only route information; sensors, counts, and requests will require authorization when integrating the API. |
+| Decision                                        | Why We Chose It                                                                                                                       |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| React with JavaScript                           | Allows building screens with reusable components while maintaining the language agreed upon by the team.                              |
+| Vite                                            | Provides a development server and build process for the website.                                                                      |
+| Separate pages, components, hooks, and services | Separates presentation, loading, and data access, facilitating maintenance and isolated tests.                                        |
+| Share public and administrative layouts         | Reuses headers and navigation without repeating them on each screen. Does not replace the authorization controls the API must apply.  |
+| React Router                                    | Identifies each view by its URL, supports nested routes, and shares layouts between related screens.                                  |
+| Leaflet and React Leaflet                       | Integrate interactive maps, routes, and markers into React components.                                                                |
+| Replaceable data service                        | Allows development with controlled scenarios and backend integration without changing the data source in each page.                   |
+| Separate public and administrative information  | Public routes will display only route information; sensors, counts, and requests will require authorization when integrating the API. |
 
 #### Navigation: React Router
 
 Website navigation is defined in `web/src/App.jsx`. It uses URLs to distinguish
 pages and nested routes to share the dashboard layout.
 
-| URL | View |
-| --- | --- |
-| `/` | Public home page. |
-| `/rutas` | Map and route exploration. |
-| `/login` | Login form, currently a demonstration. |
-| `/admin` | Redirect to `/admin/mapa`. |
-| `/admin/mapa` | Demonstration sensor map. |
-| `/admin/conteos` | Demonstration counts by route. |
-| `/admin/solicitudes` | Demonstration received requests. |
+| URL                  | View                                   |
+| -------------------- | -------------------------------------- |
+| `/`                  | Public home page.                      |
+| `/rutas`             | Map and route exploration.             |
+| `/login`             | Login form, currently a demonstration. |
+| `/admin`             | Redirect to `/admin/mapa`.             |
+| `/admin/mapa`        | Demonstration sensor map.              |
+| `/admin/conteos`     | Demonstration counts by route.         |
+| `/admin/solicitudes` | Demonstration received requests.       |
 
 ```mermaid
 flowchart TD
@@ -402,12 +404,13 @@ flowchart LR
 | Supabase PostgreSQL              | Base central de rutas, puntos, detecciones y solicitudes.                       | Permite relaciones entre datos y restricciones de unicidad para evitar registros duplicados.                  |
 | Supabase Auth                    | Verificación de credenciales administrativas.                                   | Delega el manejo de credenciales; la API seguirá comprobando permisos y administrando las sesiones del panel. |
 
-**Estado de integración:** la app utiliza transporte y confirmación simulados; la
-web usa datos de demostración y no tiene una sesión administrativa real. La API,
-Supabase Auth y la integración central siguen pendientes. La persistencia móvil
-definitiva se implementará con `expo-sqlite`; esa integración también está pendiente.
-Una recepción confirmada significará que el backend guardó la solicitud, sin
-implicar que ya fue atendida.
+**Estado de integración:** la app envía solicitudes a Express y valida recibos
+reales; el usuario confirmó el envío desde iPhone, la restauración del recibo y
+el reintento tras reiniciar el backend. El almacenamiento actual usa
+AsyncStorage y la migración a SQLite sigue pendiente. La API consulta rutas y
+guarda solicitudes en Supabase. La web mantiene datos de demostración. El login
+administrativo, el hardware y las alertas siguen pendientes. El recibo acredita
+almacenamiento, no atención humana.
 
 ### 1. Aplicación móvil
 
@@ -458,7 +461,7 @@ flowchart TD
     Controller --> Services["src/services: adaptadores del dispositivo"]
     Services --> Storage[("expo-sqlite: persistencia local prevista")]
     Services --> Location["expo-location: ubicación actual"]
-    Services --> Transport["Transporte simulado actual / API futura"]
+    Services --> Transport["Transporte HTTP a la API Express"]
 ```
 
 Las rutas determinan qué pantalla mostrar. Las pantallas consumen el estado y las
@@ -497,7 +500,7 @@ rutas:
 | `/`           | `mobile/src/app/index.js`      | Inicio y botón de ayuda.                  |
 | `/pendiente`  | `mobile/src/app/pendiente.js`  | Solicitud guardada y opción de reintento. |
 | `/enviando`   | `mobile/src/app/enviando.js`   | Solicitud en proceso de envío.            |
-| `/confirmada` | `mobile/src/app/confirmada.js` | Confirmación, actualmente simulada.       |
+| `/confirmada` | `mobile/src/app/confirmada.js` | Confirmación tras recibir un recibo persistido de la API. |
 
 ```mermaid
 stateDiagram-v2

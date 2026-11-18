@@ -23,7 +23,8 @@ if (!supabase) {
 }
 const routesRepository = supabase ? createRoutesRepository(supabase) : null;
 const helpRequestsRepository = supabase ? createHelpRequestsRepository(supabase) : null;
-const server = createApp({ routesRepository, helpRequestsRepository }).listen(port, host, () => {
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '').split(',').map(value => value.trim()).filter(Boolean);
+const server = createApp({ routesRepository, helpRequestsRepository, allowedOrigins }).listen(port, host, () => {
     console.log(`Forest API disponible en http://${host}:${port}/api/health`);
 });
 

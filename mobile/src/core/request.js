@@ -1,11 +1,15 @@
+import { REQUEST_VERSION } from './requestRecord.js';
+
 // No native dependencies here: the complete lifecycle can be tested without a phone.
 export class RequestController {
     deps;
+    /** @type {{ready: boolean, request: import('./requestRecord.js').HelpRequest | null, phase: string, online: boolean | null, error: string | null}} */
     state = { ready: false, request: null, phase: 'idle', online: null, error: null };
     listeners = new Set();
     active = true;
     busy = false;
     rerun = false;
+    /** @type {AbortController | null} */
     abort = null;
     constructor(deps) { this.deps = deps; }
     snapshot = () => this.state;
@@ -50,7 +54,7 @@ export class RequestController {
         this.busy = true;
         this.update({ phase: 'saving', error: null });
         try {
-            const request = { version: 1, id: this.deps.id(), createdAt: new Date().toISOString(), coordinates: null, status: 'pending', receipt: null };
+            const request = { version: REQUEST_VERSION, id: this.deps.id(), createdAt: new Date().toISOString(), coordinates: null, status: 'pending', receipt: null };
             await this.deps.write(request);
             this.update({ request, phase: 'pending' });
         }
@@ -121,7 +125,7 @@ export class RequestController {
             this.update({ request: null, phase: 'idle', error: null });
         }
         catch {
-            this.update({ error: 'No se pudo iniciar otra demostración. Reintenta.' });
+            this.update({ error: 'No se pudo preparar otra solicitud. Reintenta.' });
         }
         finally {
             this.busy = false;
