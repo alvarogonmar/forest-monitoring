@@ -2,7 +2,7 @@ import express from 'express';
 import { ApiError } from './errors.js';
 import { validateHelpRequest } from './validation/helpRequest.js';
 
-export function createApp({ routesRepository = null } = {}) {
+export function createApp({ routesRepository = null, helpRequestsRepository = null } = {}) {
     const app = express();
     app.disable('x-powered-by');
 
@@ -25,19 +25,17 @@ export function createApp({ routesRepository = null } = {}) {
         response.json({ items });
     });
 
-    app.post('/api/help-requests', (request, response) => {
+    app.post('/api/help-requests', async (request, response) => {
         if (!request.is('application/json')) {
             throw new ApiError(415, 'UNSUPPORTED_MEDIA_TYPE', 'Envía la solicitud en formato JSON.');
         }
 
-        validateHelpRequest(request.body);
-
-        response.status(501).json({
-            error: {
-                code: 'NOT_IMPLEMENTED',
-                message: 'La recepción de solicitudes está en construcción.',
-            },
-        });
+        const input = validateHelpRequest(request.body);
+        if (!helpRequestsRepository) {
+            throw new ApiError(503, 'PERSISTENCE_UNAVAILABLE', 'La conexión con la base de datos todavía no está configurada.');
+        }
+        const { created, receipt } = await helpRequestsRepository.save(input);
+        response.status(created ? 201 : 200).json(receipt);
     });
 
     app.use((_request, response) => {

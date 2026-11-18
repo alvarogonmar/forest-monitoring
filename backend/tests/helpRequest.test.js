@@ -64,7 +64,7 @@ test('requires all contract fields, including accuracy (nullable) and capturedAt
     }
 });
 
-test('HTTP validation returns 415/400 and keeps valid requests unconfirmed at 501', async (t) => {
+test('HTTP validation returns 415/400 and never confirms valid input without storage', async (t) => {
     const server = createApp().listen(0, '127.0.0.1');
     await once(server, 'listening');
     t.after(() => new Promise((resolve) => server.close(resolve)));
@@ -80,6 +80,6 @@ test('HTTP validation returns 415/400 and keeps valid requests unconfirmed at 50
     const error = (await missing.json()).error;
     assert.deepEqual(Object.keys(error.fields).sort(), ['coordinates', 'createdAt', 'id']);
     const acceptedFormat = await post(valid);
-    assert.equal(acceptedFormat.status, 501);
-    assert.equal((await acceptedFormat.json()).error.code, 'NOT_IMPLEMENTED');
+    assert.equal(acceptedFormat.status, 503);
+    assert.equal((await acceptedFormat.json()).error.code, 'PERSISTENCE_UNAVAILABLE');
 });

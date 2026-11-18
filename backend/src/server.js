@@ -1,6 +1,7 @@
 import { createApp } from './app.js';
 import { createSupabaseClient } from './services/supabase.js';
 import { createRoutesRepository } from './repositories/routes.js';
+import { createHelpRequestsRepository } from './repositories/helpRequests.js';
 
 const portText = process.env.PORT ?? '3001';
 if (!/^[1-9]\d{0,4}$/.test(portText) || Number(portText) > 65535) {
@@ -21,7 +22,8 @@ if (!supabase) {
     console.log('Supabase pendiente: completa SUPABASE_URL y SUPABASE_SECRET_KEY en backend/.env.');
 }
 const routesRepository = supabase ? createRoutesRepository(supabase) : null;
-const server = createApp({ routesRepository }).listen(port, host, () => {
+const helpRequestsRepository = supabase ? createHelpRequestsRepository(supabase) : null;
+const server = createApp({ routesRepository, helpRequestsRepository }).listen(port, host, () => {
     console.log(`Forest API disponible en http://${host}:${port}/api/health`);
 });
 
