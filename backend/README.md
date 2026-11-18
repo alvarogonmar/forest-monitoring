@@ -72,8 +72,25 @@ checks that the top-level result was not truncated by the Data API row limit.
 This is a small-catalog MVP; large geometries/catalogs need deliberate pagination
 and verification of embedded-result limits before increasing scope.
 
-Credentials have not been populated or a real Supabase connection verified by
-Codex at this stage. Tests cover responses using simulated database results.
+The local connection was verified after the owner populated the ignored `.env`:
+`GET /api/routes` returned HTTP 200 with `encino`, `mirador`, and `pino`, each with
+six coordinate pairs. Credentials remain local. Automated tests additionally
+cover responses using simulated database results; the live check is read-only.
+
+## Help Requests — Validation Only
+
+`POST /api/help-requests` requires a JSON body and validates it through
+`src/validation/helpRequest.js` using Zod. The strict schema requires a UUID v4,
+UTC creation/capture timestamps, finite latitude/longitude in range and a
+nonnegative accuracy value (or explicit `null`). Unknown fields are rejected;
+timestamps more than five minutes ahead are rejected, while delayed offline
+requests are allowed. Valid dates and UUIDs are normalized for future duplicate
+comparison without changing the input object.
+
+Unsupported media returns `415`; invalid fields return `400 VALIDATION_ERROR`
+with field paths and Spanish messages. Valid input still returns `501
+NOT_IMPLEMENTED`: persistence and receipt/deduplication are not implemented yet.
+The tests exercise these boundaries without inserting real requests into Supabase.
 
 ## Database Setup — First Table
 
