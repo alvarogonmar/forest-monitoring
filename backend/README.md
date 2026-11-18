@@ -8,9 +8,10 @@ Backend for the mobile app, website, and Raspberry Pi. See the
 This folder contains an initial Express server, documentation, and database
 migrations. `GET /api/health` reports process liveness, and `GET /api/routes`
 reads public trail metadata and geometry from Supabase when configured. Health
-does not verify the database. Requests, login, device
-ingestion, occupancy matching, alerts and client integration remain pending.
-The server uses Node.js and JavaScript, with Supabase PostgreSQL planned as the
+does not verify the database. `POST /api/help-requests` validates and persists
+mobile help requests with idempotent receipts. Login, device ingestion, occupancy
+matching, alerts and client integration remain pending.
+The server uses Node.js and JavaScript, with Supabase PostgreSQL as the
 central database and Supabase Auth for administrator credentials.
 
 ## Local Server — First Startup
@@ -77,7 +78,7 @@ The local connection was verified after the owner populated the ignored `.env`:
 six coordinate pairs. Credentials remain local. Automated tests additionally
 cover responses using simulated database results; the live check is read-only.
 
-## Help Requests — Validation Only
+## Help Requests — Validation and Persistence
 
 `POST /api/help-requests` requires a JSON body and validates it through
 `src/validation/helpRequest.js` using Zod. The strict schema requires a UUID v4,
@@ -88,9 +89,32 @@ requests are allowed. Valid dates and UUIDs are normalized for future duplicate
 comparison without changing the input object.
 
 Unsupported media returns `415`; invalid fields return `400 VALIDATION_ERROR`
-with field paths and Spanish messages. Valid input still returns `501
-NOT_IMPLEMENTED`: persistence and receipt/deduplication are not implemented yet.
-The tests exercise these boundaries without inserting real requests into Supabase.
+with field paths and Spanish messages. Valid input is passed to
+`src/repositories/helpRequests.js`, which maps client fields to database columns
+and attempts an INSERT. PostgreSQL supplies `received_at`.
+
+| Situation | Response |
+| --- | --- |
+| New persisted request | `201` with `{ "id": "…", "confirmedAt": "…" }` |
+| Same ID and normalized content | `200` with the original receipt |
+| Same ID with different content | `409 EVENT_ID_CONFLICT`; original row unchanged |
+| Missing connection, failed write or failed duplicate lookup | `503 PERSISTENCE_UNAVAILABLE`; no success receipt |
+
+The primary key resolves concurrent inserts. On PostgreSQL error `23505`, the
+repository reads the existing row and compares both original timestamps, latitude,
+longitude and accuracy. It never performs an upsert or changes the original row.
+The receipt timestamp comes from the persisted row and is normalized to UTC ISO
+with milliseconds, so repeated receipts are stable. This confirms storage only,
+not human attendance. Each database operation has a 10-second timeout; duplicate
+resolution may require two operations. Unknown write outcomes must be retried with
+the same ID/content, including when a response is lost after the insert commits.
+
+Tests use the real Supabase SDK with simulated PostgREST responses. They cover new
+requests, identical/concurrent retries, changed payloads, lost responses and storage
+failures without writing to the owner's database. The real write flow still needs
+to be exercised against the configured development project. No new migration is
+required; migration 001 already grants SELECT and INSERT. Request throttling is
+still needed before public deployment.
 
 ## Database Setup — First Table
 
@@ -103,8 +127,8 @@ resolve an error; inspect the error and use a later migration for changes.
 
 The phone supplies the UUID and original creation timestamp. PostgreSQL supplies
 `received_at`. The UUID primary key prevents duplicate rows; returning the original
-receipt for identical retries and rejecting conflicting payloads still require
-API implementation.
+receipt for identical retries and rejecting conflicting payloads are implemented
+in the help request repository.
 
 RLS is enabled. Direct access for `anon` and `authenticated` is revoked, with no
 client policies. The trusted backend's `service_role` receives only `select` and
