@@ -36,7 +36,7 @@ test('the same controller drives the complete route sequence and sends once', as
     send: async () => {
       sends++;
       await new Promise(resolve => { releaseSend = resolve; });
-      return { id: 'demo', confirmedAt: new Date().toISOString(), simulated: true };
+      return { id: 'navigation-test', confirmedAt: new Date().toISOString() };
     },
   });
   const route = () => getRequestRoute(controller.snapshot());

@@ -1,29 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as Crypto from 'expo-crypto';
-import { simulatedTransport } from './transport';
-const KEY = '@bosque-primavera/help-request/v1';
-function isCoordinates(value) {
-    if (!value || typeof value !== 'object')
-        return false;
-    const c = value;
-    return Number.isFinite(c.latitude) && Math.abs(c.latitude) <= 90 &&
-        Number.isFinite(c.longitude) && Math.abs(c.longitude) <= 180 &&
-        (c.accuracy === null || (Number.isFinite(c.accuracy) && c.accuracy >= 0)) && Number.isFinite(Date.parse(c.capturedAt));
-}
-async function read() {
-    const raw = await AsyncStorage.getItem(KEY);
-    if (!raw)
-        return null;
-    const r = JSON.parse(raw);
-    if (r.version !== 1 || typeof r.id !== 'string' || !r.id || !Number.isFinite(Date.parse(r.createdAt)) ||
-        !['pending', 'confirmed'].includes(r.status) || (r.coordinates !== null && !isCoordinates(r.coordinates)) ||
-        (r.status === 'confirmed' && (!r.coordinates || !r.receipt || r.receipt.simulated !== true ||
-            typeof r.receipt.id !== 'string' || !Number.isFinite(Date.parse(r.receipt.confirmedAt))))) {
-        throw new Error('Solicitud local inválida');
-    }
-    return r;
-}
+import { createHttpTransport } from './transport.js';
+import { createRequestStorage } from './storage.js';
+const requestStorage = createRequestStorage(AsyncStorage);
+// Expo inlines this public URL; credentials stay exclusively in backend/.env.
+const sendHelpRequest = createHttpTransport({ apiUrl: process.env.EXPO_PUBLIC_API_URL });
 async function locate() {
     const permission = await Location.requestForegroundPermissionsAsync();
     if (permission.status !== 'granted') {
@@ -55,19 +37,9 @@ async function locate() {
     });
 }
 export const deviceDependencies = {
-    read,
-    async write(request) {
-        try {
-            if (request)
-                await AsyncStorage.setItem(KEY, JSON.stringify(request));
-            else
-                await AsyncStorage.removeItem(KEY);
-        }
-        catch {
-            throw new Error('No pudimos actualizar el almacenamiento del teléfono. Reintenta antes de cerrar la app.');
-        }
-    },
+    read: requestStorage.read,
+    write: requestStorage.write,
     locate,
     id: () => Crypto.randomUUID(),
-    send: simulatedTransport,
+    send: sendHelpRequest,
 };

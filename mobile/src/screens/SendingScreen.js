@@ -10,7 +10,7 @@ export default function SendingScreen() {
             <Text style={styles.body}>Estamos enviando tu solicitud.{'\n'}Mantén la app abierta un momento.</Text>
             <View style={styles.loading}><Spinner /><Text style={styles.waiting}>Esperando confirmación…</Text></View>
             <RequestCard request={request} title="Tu solicitud sigue guardada"/>
-            <Text style={styles.footnote}>Te avisaremos aquí cuando se confirme la recepción de prueba.</Text>
+            <Text style={styles.footnote}>Te avisaremos aquí cuando el sistema confirme que guardó tu solicitud.</Text>
 
   </>;
 }

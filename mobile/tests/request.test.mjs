@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { RequestController } from '../src/core/request.js';
 
 const coordinates = { latitude: 20.654, longitude: -103.55, accuracy: 12, capturedAt: new Date().toISOString() };
-const receipt = { id: 'DEMO-id', confirmedAt: new Date().toISOString(), simulated: true };
-const pending = { version: 1, id: 'request-id', createdAt: new Date().toISOString(), coordinates, status: 'pending', receipt: null };
+const receipt = { id: 'request-id', confirmedAt: new Date().toISOString() };
+const pending = { version: 2, id: 'request-id', createdAt: new Date().toISOString(), coordinates, status: 'pending', receipt: null };
 function setup(overrides = {}) {
   let disk = null;
   let sends = 0;
@@ -107,7 +107,7 @@ test('background interrupts confirmation and reopening retries', async () => {
   assert.equal(h.controller.snapshot().phase, 'confirmed');
 });
 
-test('confirmed request is restored without sending again and can start another demonstration', async () => {
+test('confirmed request is restored without sending again and can start another request', async () => {
   const h = setup({ read: async () => ({ ...pending, status: 'confirmed', receipt }) });
   h.controller.setConnection(true);
   await h.controller.restore();

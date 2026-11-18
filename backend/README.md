@@ -10,7 +10,11 @@ migrations. `GET /api/health` reports process liveness, and `GET /api/routes`
 reads public trail metadata and geometry from Supabase when configured. Health
 does not verify the database. `POST /api/help-requests` validates and persists
 mobile help requests with idempotent receipts. Login, device ingestion, occupancy
-matching, alerts and client integration remain pending.
+matching, alerts and administrative client integration remain pending. The mobile
+client now has HTTP transport; the owner reported a successful request from a
+physical iPhone through Expo Go, receipt restoration after reopening, and retry
+after a backend outage with the same request ID and no duplicate row. These are
+owner-reported manual checks; airplane-mode and background sending are not implied.
 The server uses Node.js and JavaScript, with Supabase PostgreSQL as the
 central database and Supabase Auth for administrator credentials.
 
@@ -44,8 +48,19 @@ listener. `src/services/supabase.js` configures the privileged database client;
 are limited to 16 KiB. Unknown endpoints return JSON `404`;
 malformed JSON returns `400` and oversized JSON returns `413`, without reflecting
 request bodies or internal errors. Administrative endpoints are not implemented
-and do not expose database data. Authentication, CORS, request throttling and the
-full deployment configuration will be added with the real endpoints.
+and do not expose database data. Authentication, request throttling and the
+full deployment configuration remain pending. Browser CORS is allowlisted through
+the `ALLOWED_ORIGINS` environment variable (comma-separated exact origins).
+
+### iPhone and Expo Web Development
+
+Set `HOST=0.0.0.0` in the ignored local `.env` to listen on the Mac's LAN interfaces,
+then restart the server. On the phone, use `http://<MAC_WIFI_IP>:3001`; `0.0.0.0` is
+not the client address. The phone and Mac must be able to reach each other on Wi-Fi.
+For Expo web on the Mac, allow `http://localhost:8081` and `http://127.0.0.1:8081`
+in `ALLOWED_ORIGINS`. The CORS middleware handles JSON preflight and grants response
+access only to configured origins. It does not authenticate clients or block curl.
+The mobile app receives only the public API URL, never Supabase credentials.
 
 ## Supabase Connection — Public Routes
 
@@ -93,11 +108,11 @@ with field paths and Spanish messages. Valid input is passed to
 `src/repositories/helpRequests.js`, which maps client fields to database columns
 and attempts an INSERT. PostgreSQL supplies `received_at`.
 
-| Situation | Response |
-| --- | --- |
-| New persisted request | `201` with `{ "id": "…", "confirmedAt": "…" }` |
-| Same ID and normalized content | `200` with the original receipt |
-| Same ID with different content | `409 EVENT_ID_CONFLICT`; original row unchanged |
+| Situation                                                   | Response                                          |
+| ----------------------------------------------------------- | ------------------------------------------------- |
+| New persisted request                                       | `201` with `{ "id": "…", "confirmedAt": "…" }`    |
+| Same ID and normalized content                              | `200` with the original receipt                   |
+| Same ID with different content                              | `409 EVENT_ID_CONFLICT`; original row unchanged   |
 | Missing connection, failed write or failed duplicate lookup | `503 PERSISTENCE_UNAVAILABLE`; no success receipt |
 
 The primary key resolves concurrent inserts. On PostgreSQL error `23505`, the
@@ -111,8 +126,11 @@ the same ID/content, including when a response is lost after the insert commits.
 
 Tests use the real Supabase SDK with simulated PostgREST responses. They cover new
 requests, identical/concurrent retries, changed payloads, lost responses and storage
-failures without writing to the owner's database. The real write flow still needs
-to be exercised against the configured development project. No new migration is
+failures without writing to the owner's database. Manual checks against the real
+development project returned `201` for a new request and `409` when the same ID
+was sent with a changed latitude. The owner's SQL result confirmed a single row
+for the tested ID with the original latitude `20.668` and longitude `-103.569`.
+The conflicting submission did not overwrite those coordinates. No new migration is
 required; migration 001 already grants SELECT and INSERT. Request throttling is
 still needed before public deployment.
 
@@ -409,13 +427,13 @@ that are currently available.
 
 Before running the server, document:
 
-| Configuration | Purpose |
-| --- | --- |
-| Port and allowed website origin | Server startup and browser access configuration. |
-| Supabase project URL | Connection to central services. |
-| Server and authentication service keys | Data access and credential verification. |
-| Session settings | Expiration and administrative cookie configuration. |
-| Device credentials | Authorization of detections sent by the Raspberry Pi. |
+| Configuration                          | Purpose                                               |
+| -------------------------------------- | ----------------------------------------------------- |
+| Port and allowed website origin        | Server startup and browser access configuration.      |
+| Supabase project URL                   | Connection to central services.                       |
+| Server and authentication service keys | Data access and credential verification.              |
+| Session settings                       | Expiration and administrative cookie configuration.   |
+| Device credentials                     | Authorization of detections sent by the Raspberry Pi. |
 
 Final variable names will be defined when implementing the server. Provide an
 `.env.example` with placeholder values; keep secrets out of Git and do not send
