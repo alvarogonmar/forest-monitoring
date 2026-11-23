@@ -2,17 +2,21 @@ import express from 'express';
 import cors from 'cors';
 import { ApiError } from './errors.js';
 import { validateHelpRequest } from './validation/helpRequest.js';
+import { createAuthRouter } from './routes/auth.js';
 
-export function createApp({ routesRepository = null, helpRequestsRepository = null, allowedOrigins = [] } = {}) {
+export function createApp({ routesRepository = null, helpRequestsRepository = null,
+    adminAuth = null, allowedOrigins = [], secureCookies = false } = {}) {
     const app = express();
     app.disable('x-powered-by');
-    app.use(cors({ origin: allowedOrigins, methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type'] }));
+    app.use(cors({ origin: allowedOrigins, credentials: true,
+        methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type', 'X-CSRF-Token'] }));
 
     app.use('/api', (_request, response, next) => {
         response.set('Cache-Control', 'no-store');
         next();
     });
     app.use(express.json({ limit: '16kb' }));
+    app.use('/api/auth', createAuthRouter({ authService: adminAuth, allowedOrigins, secureCookies }));
 
     // Process liveness only: this does not confirm database connectivity.
     app.get('/api/health', (_request, response) => {

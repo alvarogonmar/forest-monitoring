@@ -9,8 +9,11 @@ This folder contains an initial Express server, documentation, and database
 migrations. `GET /api/health` reports process liveness, and `GET /api/routes`
 reads public trail metadata and geometry from Supabase when configured. Health
 does not verify the database. `POST /api/help-requests` validates and persists
-mobile help requests with idempotent receipts. Login, device ingestion, occupancy
-matching, alerts and administrative client integration remain pending. The mobile
+mobile help requests with idempotent receipts. Administrative login/session API
+routes are implemented. The owner verified login, session restoration, logout and
+rejection of a revoked cookie against the live development project. Web form
+integration, device ingestion, occupancy matching, alerts and administrative
+resource queries remain pending. The mobile
 client now has HTTP transport; the owner reported a successful request from a
 physical iPhone through Expo Go, receipt restoration after reopening, and retry
 after a backend outage with the same request ID and no duplicate row. These are
@@ -48,8 +51,9 @@ listener. `src/services/supabase.js` configures the privileged database client;
 are limited to 16 KiB. Unknown endpoints return JSON `404`;
 malformed JSON returns `400` and oversized JSON returns `413`, without reflecting
 request bodies or internal errors. Administrative endpoints are not implemented
-and do not expose database data. Authentication, request throttling and the
-full deployment configuration remain pending. Browser CORS is allowlisted through
+and do not expose private resource data. Session endpoints are available below;
+public help-request throttling and full deployment configuration remain pending.
+Browser CORS is allowlisted through
 the `ALLOWED_ORIGINS` environment variable (comma-separated exact origins).
 
 ### iPhone and Expo Web Development
@@ -133,6 +137,73 @@ for the tested ID with the original latitude `20.668` and longitude `-103.569`.
 The conflicting submission did not overwrite those coordinates. No new migration is
 required; migration 001 already grants SELECT and INSERT. Request throttling is
 still needed before public deployment.
+
+## Administrative Login and Sessions
+
+This block implements authentication only. The existing web login remains a demo,
+and no administrative help-request/sensor/count query endpoint is exposed yet.
+Use migration 008 already applied to the development project; no new SQL is needed.
+
+Fill `SUPABASE_PUBLISHABLE_KEY` in the ignored `backend/.env` with the project's
+Publishable key (`sb_publishable_...`) from Supabase Project Settings / API Keys.
+Keep the existing `SUPABASE_URL` and `SUPABASE_SECRET_KEY`. Restart Express after
+changing `.env`. Missing publishable-key configuration makes login return
+`503 AUTH_UNAVAILABLE`, while public routes and help submissions keep working.
+
+| Method and endpoint | Input | Successful response |
+| --- | --- | --- |
+| `POST /api/auth/login` | JSON `{ "email": "…", "password": "…" }` | `200`, session cookie and `{ user: { id, email, role: "admin" }, expiresAt, csrfToken }` |
+| `GET /api/auth/me` | Session cookie | `200` with current session information |
+| `POST /api/auth/logout` | Session cookie and `X-CSRF-Token` from login/me | `204`, session revoked and cookie cleared |
+
+The login validator normalizes email but preserves the password exactly, including
+spaces. Credential verification uses a fresh nonprivileged Supabase Auth client
+per attempt. It never signs a user into the privileged database client and never
+returns Supabase access/refresh tokens. An active `admin_memberships` row is required.
+Wrong credentials and absent/inactive membership share `401 INVALID_CREDENTIALS`.
+Supabase failures return `503 AUTH_UNAVAILABLE`; database failures return `503
+PERSISTENCE_UNAVAILABLE`. Failed login/persistence never sets a session cookie.
+This password-only MVP rejects accounts with verified MFA factors instead of
+bypassing a required second factor; a challenge flow is not implemented.
+
+Sessions use 32 random bytes represented as a 64-character hex cookie token. Only
+its SHA-256 digest is stored in `admin_sessions`; passwords and raw cookie tokens
+are not stored there. The CSRF token is independently random. Sessions expire
+absolutely after eight hours, with no automatic renewal. Each session lookup checks
+expiry, revocation, active membership, and the current Auth account's existence,
+ban/deletion/MFA state. Logout validates CSRF using a timing-safe comparison and
+revokes the stored session before clearing its cookie. Replayed cookies cannot
+restore a revoked session.
+
+Cookie name: `forest_admin_session`; `HttpOnly`, `SameSite=Lax`, `Path=/api`, and
+`Secure` when `NODE_ENV=production`. Production browser access therefore requires
+HTTPS. Use the same hostname for the web and API in development (for example,
+`localhost:5173` and `localhost:3001`) and a same-origin proxy in production. Mixing
+a localhost web page with a LAN-IP API can prevent SameSite cookies from working.
+Frontend requests must use `credentials: "include"`. Credentialed CORS allows only
+configured exact origins and permits `X-CSRF-Token`; it does not authorize users.
+
+Login and logout reject browser origins outside `ALLOWED_ORIGINS`, including
+cross-site Fetch Metadata requests without an origin. Nonbrowser clients without
+Origin/Fetch Metadata headers can be used for manual CLI testing; logout still
+requires the CSRF token. Add the Vite origin, normally `http://localhost:5173`, to
+the existing origin list. Keep any Expo preview origins needed by the mobile tests.
+
+Login is limited to ten attempts per IP per 15 minutes, returning `429 RATE_LIMITED`
+and `Retry-After` when exceeded. Its in-memory limiter is for a single-process
+prototype; a multi-instance deployment needs a shared store and explicit trusted
+proxy configuration. Generic resource throttling remains a later step. Supabase
+password resets/sign-outs do not automatically revoke every custom application
+session: use membership deactivation or owner-managed session revocation when
+required. Do not log credential bodies, cookies, CSRF tokens or session rows.
+
+Files: `validation/adminLogin.js`, `repositories/adminSessions.js`,
+`services/adminAuth.js`, and `routes/auth.js`. Existing `services/supabase.js` now
+provides isolated credential verification and bounded network requests. Automated
+tests cover lifecycle, expiry, revocation, origin/CSRF, rate limits and failure
+handling with simulated Supabase responses. The owner also ran the local manual
+check against real Supabase: login `200`, session restore `200`, logout `204`, and
+replay of the revoked cookie `401`. Credentials were entered locally, not in chat.
 
 ## Database Setup — First Table
 
@@ -389,8 +460,8 @@ Being an Auth user does not grant administrative access. Do not infer admin acce
 from user-editable metadata. Deleting an Auth user cascades through membership and
 sessions, without deleting requests, sensor events or occupancy alerts.
 
-The future login flow will verify credentials with Supabase Auth, require active
-membership, generate at least 32 random bytes for the cookie token, and persist
+The login flow verifies credentials with Supabase Auth, requires active
+membership, generates at least 32 random bytes for the cookie token, and persists
 only its lowercase SHA-256 digest in `admin_sessions`. Generate an independent
 32-byte hex CSRF token and store it with the session. Its plaintext is required
 for authenticated `/auth/me` restoration and does not itself authenticate requests.
@@ -404,11 +475,11 @@ token strength, password verification or live session validity. At logout set
 The backend can read membership and insert/read sessions, and update only their
 revocation field. It cannot grant membership or extend session expiry through its
 table privileges. Expired rows do not delete themselves; owner-managed cleanup
-can be added separately. Cookies, CSRF/Origin checks, credential verification,
-generic login errors, throttling and account disablement handling remain backend
-implementation tasks. A Supabase account ban/disable must also revoke these custom
-sessions via a controlled admin procedure; custom sessions are not automatically
-revoked by every Supabase Auth action.
+can be added separately. Cookie, CSRF/Origin, credential verification, generic
+login errors and login throttling are implemented in the session API. Session
+lookups reject currently banned/deleted accounts; custom sessions are not
+automatically revoked by every Supabase Auth action. For example, password-reset
+handling requires an explicit custom-session revocation policy.
 
 ## Planned Operations
 
