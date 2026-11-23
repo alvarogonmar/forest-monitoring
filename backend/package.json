@@ -9,13 +9,14 @@
   "scripts": {
     "dev": "node --env-file-if-exists=.env --watch src/server.js",
     "start": "node --env-file-if-exists=.env src/server.js",
-    "check": "node --check src/app.js && node --check src/server.js && node --check src/errors.js && node --check src/services/supabase.js && node --check src/repositories/routes.js && node --check src/repositories/helpRequests.js && node --check src/validation/helpRequest.js",
+    "check": "node --check src/app.js && node --check src/server.js && node --check src/errors.js && node --check src/services/supabase.js && node --check src/repositories/routes.js && node --check src/repositories/helpRequests.js && node --check src/validation/helpRequest.js && node --check src/validation/adminLogin.js && node --check src/repositories/adminSessions.js && node --check src/services/adminAuth.js && node --check src/routes/auth.js",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
     "cors": "^2.8.6",
     "express": "^5.3.0",
+    "express-rate-limit": "^8.7.5",
     "zod": "^4.6.7"
   }
 }

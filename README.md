@@ -59,8 +59,9 @@ and validates real persisted receipts; the owner confirmed the basic flow on a
 physical iPhone, receipt restoration and retry after a backend outage. Local
 storage currently uses AsyncStorage; the planned SQLite migration remains pending.
 The API reads public routes and persists help requests in Supabase. The website
-still uses demonstration data. Administrative login, hardware ingestion and alert
-processing remain pending. Receipt confirms storage, not human attendance.
+still uses demonstration data. Administrative session endpoints are implemented;
+login/session lifecycle was verified against the live project. Web form integration, hardware ingestion and
+alert processing remain pending. Receipt confirms storage, not human attendance.
 
 ### 1. Mobile App
 
@@ -408,8 +409,9 @@ flowchart LR
 reales; el usuario confirmó el envío desde iPhone, la restauración del recibo y
 el reintento tras reiniciar el backend. El almacenamiento actual usa
 AsyncStorage y la migración a SQLite sigue pendiente. La API consulta rutas y
-guarda solicitudes en Supabase. La web mantiene datos de demostración. El login
-administrativo, el hardware y las alertas siguen pendientes. El recibo acredita
+guarda solicitudes en Supabase. La web mantiene datos de demostración. Los endpoints
+de sesión administrativa están implementados y se verificó el ciclo real de login
+y cierre. Falta conectar el formulario web, el hardware y las alertas. El recibo acredita
 almacenamiento, no atención humana.
 
 ### 1. Aplicación móvil
