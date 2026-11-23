@@ -3,6 +3,7 @@ import cors from 'cors';
 import { ApiError } from './errors.js';
 import { validateHelpRequest } from './validation/helpRequest.js';
 import { createAuthRouter } from './routes/auth.js';
+import { createAdminRouter } from './routes/admin.js';
 
 export function createApp({ routesRepository = null, helpRequestsRepository = null,
     adminAuth = null, allowedOrigins = [], secureCookies = false } = {}) {
@@ -17,6 +18,7 @@ export function createApp({ routesRepository = null, helpRequestsRepository = nu
     });
     app.use(express.json({ limit: '16kb' }));
     app.use('/api/auth', createAuthRouter({ authService: adminAuth, allowedOrigins, secureCookies }));
+    app.use('/api/admin', createAdminRouter({ authService: adminAuth, helpRequestsRepository }));
 
     // Process liveness only: this does not confirm database connectivity.
     app.get('/api/health', (_request, response) => {
