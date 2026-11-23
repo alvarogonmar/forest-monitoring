@@ -1,4 +1,5 @@
 import { ApiError } from '../errors.js';
+import { encodeHelpRequestsCursor } from '../validation/adminHelpRequests.js';
 
 const unavailable = () => new ApiError(503, 'PERSISTENCE_UNAVAILABLE',
     'No pudimos confirmar el guardado. Conserva la solicitud y reintenta con el mismo ID.');
@@ -20,6 +21,41 @@ function receiptFrom(row, expectedId) {
 
 export function createHelpRequestsRepository(supabase) {
     return {
+        async list(filters) {
+            const { from, to, limit, cursor } = filters;
+            try {
+                let query = supabase.from('help_requests')
+                    .select('id,created_at,received_at,latitude,longitude,accuracy,location_captured_at', { count: 'exact' })
+                    .order('received_at', { ascending: false }).order('id', { ascending: false })
+                    .limit(limit + 1);
+                if (from) query = query.gte('created_at', from);
+                if (to) query = query.lt('created_at', to);
+                if (cursor) {
+                    // Cursor values are validated before reaching this PostgREST expression.
+                    query = query.or(`received_at.lt."${cursor.receivedAt}",and(received_at.eq."${cursor.receivedAt}",id.lt.${cursor.id})`);
+                }
+                const { data, error, count } = await query.abortSignal(AbortSignal.timeout(10_000));
+                if (error || !Array.isArray(data) || !Number.isInteger(count)
+                    || count < data.length || (count > 0 && data.length === 0)) throw new Error();
+                const rows = data.slice(0, limit);
+                const items = rows.map(row => ({
+                    id: row.id,
+                    createdAt: new Date(row.created_at).toISOString(),
+                    receivedAt: new Date(row.received_at).toISOString(),
+                    coordinates: {
+                        latitude: row.latitude, longitude: row.longitude, accuracy: row.accuracy,
+                        capturedAt: new Date(row.location_captured_at).toISOString(),
+                    },
+                }));
+                return {
+                    items,
+                    nextCursor: count > rows.length ? encodeHelpRequestsCursor(rows.at(-1), filters) : null,
+                };
+            } catch {
+                throw new ApiError(503, 'PERSISTENCE_UNAVAILABLE', 'No pudimos consultar las solicitudes. Reintenta.');
+            }
+        },
+
         async save(request) {
             // Input has already been validated. Never accept a client receipt or status.
             const row = {

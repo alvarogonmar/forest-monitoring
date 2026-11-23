@@ -109,5 +109,6 @@ test('HTTP routes expose the public contract and return 503 before configuration
     assert.equal(payload.items[0].coordinates.length, 2);
     assert.ok(!JSON.stringify(payload).includes('do-not-expose'));
     const privateEndpoint = await fetch(`${configured}/api/admin/sensor-points`);
-    assert.equal(privateEndpoint.status, 404);
+    // The entire administrative namespace now checks authentication first.
+    assert.equal(privateEndpoint.status, 401);
 });

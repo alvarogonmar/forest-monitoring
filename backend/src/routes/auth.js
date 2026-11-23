@@ -2,15 +2,8 @@ import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { ApiError } from '../errors.js';
 import { validateAdminLogin } from '../validation/adminLogin.js';
-
-export const SESSION_COOKIE_NAME = 'forest_admin_session';
-
-function readSessionCookie(request) {
-    const values = (request.get('cookie') ?? '').split(';').map(part => part.trim())
-        .filter(part => part.startsWith(`${SESSION_COOKIE_NAME}=`));
-    // Tokens are lowercase hex: encoded or duplicate cookie values are not accepted.
-    return values.length === 1 ? values[0].slice(SESSION_COOKIE_NAME.length + 1) : null;
-}
+import { SESSION_COOKIE_NAME, readSessionCookie } from '../middleware/adminSession.js';
+export { SESSION_COOKIE_NAME } from '../middleware/adminSession.js';
 
 export function createAuthRouter({ authService, allowedOrigins, secureCookies }) {
     const router = Router();

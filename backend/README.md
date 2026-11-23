@@ -12,8 +12,10 @@ does not verify the database. `POST /api/help-requests` validates and persists
 mobile help requests with idempotent receipts. Administrative login/session API
 routes are implemented. The owner verified login, session restoration, logout and
 rejection of a revoked cookie against the live development project. Web form
-integration, device ingestion, occupancy matching, alerts and administrative
-resource queries remain pending. The mobile
+integration, device ingestion, occupancy matching, alerts and sensor/count queries
+remain pending. The private help-request list is implemented and covered by
+automated tests. The owner verified authenticated listing, a second page and
+rejection of a revoked cookie against the live project. The mobile
 client now has HTTP transport; the owner reported a successful request from a
 physical iPhone through Expo Go, receipt restoration after reopening, and retry
 after a backend outage with the same request ID and no duplicate row. These are
@@ -140,8 +142,8 @@ still needed before public deployment.
 
 ## Administrative Login and Sessions
 
-This block implements authentication only. The existing web login remains a demo,
-and no administrative help-request/sensor/count query endpoint is exposed yet.
+The existing web login remains a demo. Administrative sessions also protect the
+help-request listing described below; sensor/count queries remain pending.
 Use migration 008 already applied to the development project; no new SQL is needed.
 
 Fill `SUPABASE_PUBLISHABLE_KEY` in the ignored `backend/.env` with the project's
@@ -204,6 +206,48 @@ tests cover lifecycle, expiry, revocation, origin/CSRF, rate limits and failure
 handling with simulated Supabase responses. The owner also ran the local manual
 check against real Supabase: login `200`, session restore `200`, logout `204`, and
 replay of the revoked cookie `401`. Credentials were entered locally, not in chat.
+
+## Private Help-Request Listing
+
+`GET /api/admin/help-requests` requires the administrative session cookie. The
+reusable `middleware/adminSession.js` checks the stored session, expiry, revocation,
+active membership and current Auth account through the existing auth service
+before accessing help-request data. Missing/invalid/expired/revoked sessions return
+`401 AUTH_REQUIRED`; inactive membership returns `403 FORBIDDEN`. Storage or auth
+provider failures return `503`, never a misleading empty successful list.
+
+Query parameters:
+
+| Parameter | Behavior |
+| --- | --- |
+| `limit` | Integer from 1 to 100; defaults to 50. |
+| `from` | Inclusive lower bound on the original `createdAt`. |
+| `to` | Exclusive upper bound on the original `createdAt`; must be after `from`. |
+| `cursor` | Opaque next-page value returned by this endpoint. |
+
+Dates must be UTC ISO timestamps with seconds and at most three fractional digits
+(e.g. `2026-11-18T00:00:00.000Z`). Unknown/repeated parameters, invalid dates or
+cursors, and changing filters or limit while using a cursor return `400
+VALIDATION_ERROR`. Restart without a cursor when changing the query.
+
+Responses contain `{ items, nextCursor }`. Each item exposes `id`, `createdAt`,
+`receivedAt` and `coordinates: { latitude, longitude, accuracy, capturedAt }`.
+An empty list returns `items: []` and `nextCursor: null`. Ordering is server
+`received_at DESC, id DESC`. Keyset pagination preserves PostgreSQL microseconds
+in the cursor, although displayed timestamps use milliseconds. Newer arrivals
+appear when refreshing from the first page; pagination is not a frozen snapshot.
+Cursors encode validated pagination state; they do not grant authorization.
+An exact filtered count detects server row caps so a shortened page does not
+silently hide later rows. Each database query has a ten-second timeout.
+
+Files: `routes/admin.js`, `middleware/adminSession.js`,
+`validation/adminHelpRequests.js`, and `repositories/helpRequests.js`.
+No additional migration or frontend change is required for this backend block.
+Automated tests use temporary local HTTP servers and simulated PostgREST responses;
+they do not write to the live project. The owner also verified the live flow:
+login and session restoration `200`, listing `200` with two first-page items,
+next page `200`, logout `204`, and revoked-cookie replay `401` for both session
+restoration and listing. The local ignored backend log records implementation details.
 
 ## Database Setup — First Table
 
