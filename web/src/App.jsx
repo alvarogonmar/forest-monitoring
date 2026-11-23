@@ -1,5 +1,6 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router'
 import SiteHeader from './components/SiteHeader.jsx'
+import SessionGate from './components/SessionGate.jsx'
 import HomePage from './pages/HomePage.jsx'
 import RoutesPage from './pages/RoutesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -24,7 +25,9 @@ export default function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/rutas" element={<RoutesPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route element={<SessionGate signedOutOnly />}>
+          <Route path="/login" element={<LoginPage />} />
+        </Route>
         <Route
           path="*"
           element={
@@ -35,11 +38,13 @@ export default function App() {
           }
         />
       </Route>
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Navigate to="mapa" replace />} />
-        <Route path="mapa" element={<AdminMapPage />} />
-        <Route path="conteos" element={<AdminCountsPage />} />
-        <Route path="solicitudes" element={<AdminRequestsPage />} />
+      <Route element={<SessionGate />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="mapa" replace />} />
+          <Route path="mapa" element={<AdminMapPage />} />
+          <Route path="conteos" element={<AdminCountsPage />} />
+          <Route path="solicitudes" element={<AdminRequestsPage />} />
+        </Route>
       </Route>
     </Routes>
   )

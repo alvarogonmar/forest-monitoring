@@ -1,4 +1,6 @@
-import { Link, NavLink, Outlet, useLocation } from 'react-router'
+import { useRef, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
+import { useSession } from '../auth/sessionContext.js'
 import './AdminLayout.css'
 import ForestBrand from './ForestBrand.jsx'
 
@@ -10,6 +12,27 @@ const sections = [
 
 export default function AdminLayout() {
   const { pathname } = useLocation()
+  const { session, logout } = useSession()
+  const navigate = useNavigate()
+  const [signingOut, setSigningOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+  const pendingLogout = useRef(false)
+
+  async function handleLogout() {
+    if (pendingLogout.current) return
+    pendingLogout.current = true
+    setSigningOut(true)
+    setLogoutError('')
+    try {
+      await logout(session.csrfToken)
+      navigate('/login', { replace: true })
+    } catch (error) {
+      setLogoutError(error.message)
+    } finally {
+      pendingLogout.current = false
+      setSigningOut(false)
+    }
+  }
   const currentSection = sections.find((section) => section.to === pathname)
 
   return (
@@ -27,6 +50,13 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
+        <div className="admin-session">
+          <p>{session.user.email}</p>
+          <button type="button" onClick={handleLogout} disabled={signingOut}>
+            {signingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
+          </button>
+          {logoutError && <p role="alert">{logoutError}</p>}
+        </div>
         <Link className="admin-return" to="/">← Volver al sitio</Link>
       </aside>
 
@@ -39,7 +69,7 @@ export default function AdminLayout() {
           <span className="admin-demo-badge">Vista de demostración</span>
         </header>
         <p className="admin-demo-notice">
-          Datos ficticios para explorar el panel. No hay una sesión autenticada.
+          Datos ficticios para explorar el panel.
         </p>
         <Outlet />
       </main>

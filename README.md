@@ -62,7 +62,12 @@ The API reads public routes and persists help requests in Supabase. The website
 still uses demonstration data. Administrative session endpoints are implemented;
 login/session lifecycle was verified against the live project. A private, paginated
 help-request listing is implemented with automated coverage; the owner verified
-live listing, a second page and denial after session revocation. Web form integration, hardware ingestion and alert processing remain pending. Receipt confirms storage, not human attendance.
+live listing, a second page and denial after session revocation. The web login
+form, session restoration, protected frontend routes, profile navigation and logout
+are connected. The updated browser session flow has simulated-account coverage;
+owner verification of that flow, real dashboard data, hardware ingestion and alert
+processing remain pending.
+Receipt confirms storage, not human attendance.
 
 ### 1. Mobile App
 

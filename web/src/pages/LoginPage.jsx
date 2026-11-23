@@ -1,28 +1,41 @@
-import { useState } from 'react'
-import { Link } from 'react-router'
+import { useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { useSession } from '../auth/sessionContext.js'
 import forestImage from '../assets/forest.png'
 import './LoginPage.css'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const errorBox = useRef(null)
+  const [submitting, setSubmitting] = useState(false)
+  const pending = useRef(false)
+  const navigate = useNavigate()
+  const { login } = useSession()
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    if (pending.current) return
     const form = event.currentTarget
     const data = new FormData(form)
-
-    if (!data.get('username').trim()) {
-      setMessage('Escribe tu usuario.')
-      form.elements.namedItem('username').focus()
-      return
+    pending.current = true
+    setSubmitting(true)
+    setErrorMessage('')
+    setMessage('Comprobando tus datos…')
+    try {
+      await login({ email: data.get('email'), password: data.get('password') })
+      form.reset()
+      setShowPassword(false)
+      navigate('/admin/mapa', { replace: true })
+    } catch (error) {
+      setMessage('')
+      setErrorMessage(error.message)
+      requestAnimationFrame(() => errorBox.current?.focus())
+    } finally {
+      pending.current = false
+      setSubmitting(false)
     }
-
-    setMessage(
-      'Formulario validado. El inicio de sesión estará disponible al conectar el backend.',
-    )
-    form.reset()
-    setShowPassword(false)
   }
 
   return (
@@ -34,19 +47,20 @@ export default function LoginPage() {
       <section className="login-content" aria-labelledby="login-title">
         <p className="login-eyebrow">ACCESO ADMINISTRATIVO</p>
         <h1 id="login-title">Bienvenido de nuevo</h1>
-        <p className="login-demo-note" id="login-demo-note">
-          Vista de demostración. Usa datos de prueba.
+        <p className="login-note" id="login-note">
+          Ingresa con tu cuenta de administrador.
         </p>
 
-        <form onSubmit={handleSubmit} aria-describedby="login-demo-note">
+        <form onSubmit={handleSubmit} aria-describedby="login-note" aria-busy={submitting}>
           <div className="login-field">
-            <label htmlFor="username">Usuario</label>
+            <label htmlFor="email">Correo electrónico</label>
             <input
-              id="username"
-              name="username"
-              type="text"
+              id="email"
+              name="email"
+              type="email"
               autoComplete="username"
-              placeholder="Ingresa tu usuario"
+              placeholder="Ingresa tu correo"
+              disabled={submitting}
               required
             />
           </div>
@@ -60,6 +74,7 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 placeholder="Ingresa tu contraseña"
+                disabled={submitting}
                 required
               />
               <button
@@ -73,15 +88,20 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button className="login-submit" type="submit">
-            Iniciar sesión <span aria-hidden="true">→</span>
+          {errorMessage && (
+            <div className="login-error" role="alert" tabIndex={-1} ref={errorBox}>
+              <span className="login-error-icon" aria-hidden="true">!</span>
+              <div>
+                <strong>No pudimos iniciar sesión</strong>
+                <p>{errorMessage}</p>
+              </div>
+            </div>
+          )}
+          <button className="login-submit" type="submit" disabled={submitting}>
+            {submitting ? 'Iniciando sesión…' : 'Iniciar sesión'} <span aria-hidden="true">→</span>
           </button>
           <p className="login-message" role="status">{message}</p>
         </form>
-
-        <Link className="login-demo-link" to="/admin/mapa">
-          Ver panel de demostración
-        </Link>
 
         <Link className="login-back" to="/">
           <span aria-hidden="true">←</span> Volver al inicio
