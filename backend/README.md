@@ -11,9 +11,11 @@ reads public trail metadata and geometry from Supabase when configured. Health
 does not verify the database. `POST /api/help-requests` validates and persists
 mobile help requests with idempotent receipts. Administrative login/session API
 routes are implemented. The owner verified login, session restoration, logout and
-rejection of a revoked cookie against the live development project. Web form
-integration, device ingestion, occupancy matching, alerts and sensor/count queries
-remain pending. The private help-request list is implemented and covered by
+rejection of a revoked cookie against the live development project. Web login,
+session restoration, protected frontend routes, profile navigation and logout are
+connected. Owner verification of the updated browser flow, real dashboard data,
+device ingestion, occupancy matching, alerts and sensor/count queries remain
+pending. The private help-request list is implemented and covered by
 automated tests. The owner verified authenticated listing, a second page and
 rejection of a revoked cookie against the live project. The mobile
 client now has HTTP transport; the owner reported a successful request from a
@@ -142,7 +144,8 @@ still needed before public deployment.
 
 ## Administrative Login and Sessions
 
-The existing web login remains a demo. Administrative sessions also protect the
+The web login form, session restoration, route protection and logout now call
+this API. Administrative sessions protect the
 help-request listing described below; sensor/count queries remain pending.
 Use migration 008 already applied to the development project; no new SQL is needed.
 
